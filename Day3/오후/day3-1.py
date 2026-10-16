@@ -12,5 +12,6 @@ names = ['홍길도','이순신','강감찬']
 test_str = ['epoch=1,loss=0.45,acc=88.5']
 for line in test_str:
     result=dict(item.split('=') for item in line.split(','))
+
     print (result)
 
