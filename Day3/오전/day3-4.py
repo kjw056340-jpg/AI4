@@ -12,5 +12,6 @@ class CreditCardGateway(PaymentGateway):
 class BankGateway(PaymentGateway):
     pass
 
+
 for obj in [CreditCardGateway(), BankGateway()]:
     print(obj.process_payment('식료품',100))
