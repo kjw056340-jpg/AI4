@@ -16,4 +16,4 @@ def calc_order_legacy(u_type, price, qty, coupon):
     return int(total)
 
 
-calc_order_legacy(1,100,20,"Yes")
+result=calc_order_legacy(1,100,20,"Yes")
