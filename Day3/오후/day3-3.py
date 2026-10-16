@@ -14,3 +14,6 @@ def calc_order_legacy(u_type, price, qty, coupon):
     if total < 0:
         total = 0
     return int(total)
+
+
+calc_order_legacy(1,100,20,"Yes")
