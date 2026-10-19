@@ -2,3 +2,13 @@ login feature
  - 사용자 아이디 입력
  - 비밀번호 입력
  - 로그인 입력
+
+#현재 브랜치 확인- git branch
+#메인 브랜치로 이동- git switch main
+#분기하기 전 최신 main소스를 동기화- main pull origin  main
+#작업(개인 작업들_소스수정 및 삭제 또는 추가등등)
+#브랜치생성 및 브랜치 이동 git switch -c feature/login
+#생성 및 이동한 브랜치 확인 git branch
+#반영은 ui로 sorce tree로 작업한다
+#서버에 가면 request 요청 버튼을 클릭하여 처리한다
+#-------------------------------수정내용 main에 반영하기
