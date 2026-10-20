@@ -24,7 +24,35 @@ def test_docs_and_schema(client):
 
 @pytest.mark.parametrize("client", [1], indirect=True)
 def test_hello(client):
-    assert client.get('/').json() == {'message': 'Hello FastAPI'}
+    response = client.get('/')
+    assert response.status_code == 200
+    assert response.headers['content-type'].startswith('text/html')
+    assert '<h1>Hello FastAPI</h1>' in response.text
+    assert '별도 HTML 파일로 만든' in response.text
+
+
+@pytest.mark.parametrize("client", [1], indirect=True)
+def test_greeting(client):
+    response = client.get('/greet', params={'name': ' 홍길동 '})
+    assert response.status_code == 200
+    assert '홍길동님, 안녕하세요!' in response.text
+    assert 'value="홍길동"' in response.text
+
+
+@pytest.mark.parametrize("client", [1], indirect=True)
+def test_greeting_validation(client):
+    for name in ('', '   ', '가' * 31):
+        response = client.get('/greet', params={'name': name})
+        assert response.status_code == 400
+        assert 'role="alert"' in response.text
+
+
+@pytest.mark.parametrize("client", [1], indirect=True)
+def test_greeting_escapes_html(client):
+    response = client.get('/greet', params={'name': '<script>alert(1)</script>'})
+    assert response.status_code == 200
+    assert '<script>' not in response.text
+    assert '&lt;script&gt;' in response.text
 
 
 @pytest.mark.parametrize("client", [2], indirect=True)
