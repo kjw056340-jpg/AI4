@@ -1,0 +1,47 @@
+Windows + VS Code용 FastAPI 8차시 학생 배포 자료
+
+먼저 WINDOWS_VSCODE_START.html을 브라우저로 여세요.
+설치와 폴더 열기, CMD 선택, 인터프리터 설정을 순서대로 안내합니다.
+전체 이론과 실습 코드는 FastAPI_이론실습교안.html에 있습니다.
+인쇄용 교안: output/pdf/FastAPI_Windows_VSCode_8차시_교안.pdf
+
+1. Python 3.12 또는 3.13이 설치되어 있는지 확인합니다.
+2. 이 fastapi_win_vscode 폴더 자체를 VS Code로 엽니다.
+3. 새 CMD(Command Prompt) 터미널을 엽니다.
+4. 아래 명령으로 설치합니다.
+
+python --version
+python -m venv .venv
+.venv\Scripts\activate.bat
+python -m pip install -r requirements.txt
+python -m pip check
+
+5. pip check에서 No broken requirements found.를 확인한 뒤 VS Code의 Python: Select Interpreter에서
+   이 프로젝트의 .venv/Scripts/python.exe를 선택합니다.
+6. 1차시 서버를 실행합니다.
+
+run.cmd 1
+
+7. 브라우저에서 http://127.0.0.1:8000/docs 를 엽니다.
+8. Ctrl+C로 서버를 종료한 뒤 다음 차시를 실행합니다.
+
+run.cmd 2
+
+차시 번호는 1~8입니다. 새 CMD 터미널에서는 .venv\Scripts\activate.bat로 활성화합니다.
+코드를 고치면 Ctrl+S 저장 -> Ctrl+C 종료 -> 같은 run.cmd 명령 재실행입니다.
+PowerShell 설치는 시작 안내의 가상환경 Python 직접 지정 명령을 사용합니다.
+차시 실행은 .\run.cmd 1, 검증은 .\verify.cmd입니다.
+
+서버를 종료하고 전체 검증:
+
+verify.cmd
+
+환경 진단과 88개 테스트가 실행됩니다. Python 3.12.14와 3.13.12에서
+각각 88개 테스트를 통과했습니다. 학생 PC에서는 verify.cmd로 확인합니다.
+고정 버전에서 Starlette의 TestClient 향후 변경 안내 경고 1건이 나올 수 있습니다.
+기본 실습은 자동 reload 없이 실행하며 서버 재시작 시 메모리 데이터가 초기화됩니다.
+
+VS Code의 F5 실행 구성 8개와 Tasks 작업 설정이 .vscode에 포함되어 있습니다.
+F5 실행 전에 기존 서버를 종료하세요. Run Python File 버튼 대신 전용 구성을 씁니다.
+py 실행기가 없는 PC에서도 진행할 수 있습니다. python도 없거나 잘못된 버전이면
+시작 안내의 Python 설치와 PATH 문제 해결부터 진행하세요.
