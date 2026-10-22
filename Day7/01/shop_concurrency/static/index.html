@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>동시성 마켓 · 상품 조회 실험실</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <header class="header"><a href="/" class="brand"><span class="brand-icon">↗</span> 동시성 마켓</a><span class="header-note">DAY 07 <span class="divider">/</span> FASTAPI LAB</span></header>
+  <main>
+    <section class="intro"><div><p class="eyebrow">SHOPPING, WITH A LITTLE SCIENCE</p><h1>같은 기다림,<br>다른 처리 방식.</h1><p class="lead">여러 상품의 재고와 배송 정보를 동시에 조회해 보세요.<br>서버가 기다리는 방법에 따라 쇼핑 경험이 달라집니다.</p></div><aside class="intro-note"><span class="live-dot"></span> 실제 서버 요청으로 비교합니다<p>상품 조회 중 서버 상태도 확인합니다.<br>다른 고객의 요청까지 기다리게 될까요?</p><span class="tag">동기 호출 → 비동기 I/O → 스레드 분리</span></aside></section>
+
+    <section class="panel controls" aria-labelledby="settings-title">
+      <div class="section-label"><span class="step">01</span><h2 id="settings-title">실험 설정</h2><span>모든 방식에 같은 조건을 적용합니다</span></div>
+      <div class="settings"><label>동시 상품 조회 <select id="count"><option value="2">2개 상품</option><option value="3" selected>3개 상품</option><option value="4">4개 상품</option></select></label><label>상품당 대기 시간 <select id="delay"><option value="0.5">0.5초</option><option value="1">1초</option><option value="2" selected>2초</option><option value="3">3초</option></select></label><p>각 버튼을 눌러 결과를 비교하세요.<br>진행 중에도 화면의 타이머는 움직입니다.</p></div>
+      <div class="mode-grid">
+        <button class="mode blocking" data-mode="blocking"><span class="mode-no">A / BLOCKING</span><strong>동기 호출</strong><span>이벤트 루프에서 직접 기다리기</span><code>time.sleep(delay)</code><b>조회 시작 ↗</b></button>
+        <button class="mode async" data-mode="async"><span class="mode-no">B / ASYNC I/O</span><strong>비동기 호출</strong><span>기다리는 동안 다른 요청 처리하기</span><code>await asyncio.sleep(delay)</code><b>조회 시작 ↗</b></button>
+        <button class="mode thread" data-mode="thread"><span class="mode-no">C / THREAD</span><strong>동기 함수 개선</strong><span>기존 동기 함수를 별도 스레드로</span><code>await asyncio.to_thread(...)</code><b>조회 시작 ↗</b></button>
+      </div>
+    </section>
+
+    <section class="results" aria-labelledby="results-title"><div class="section-label"><span class="step">02</span><h2 id="results-title">상품 조회 현황</h2><span id="run-label">조회 방식을 선택해 주세요</span></div>
+      <div class="metrics"><div><span>전체 완료 시간</span><strong id="elapsed">0.00<span> s</span></strong></div><div><span>상품 조회 완료</span><strong id="completed">0 / 3</strong></div><div><span>서버 상태 확인 · 최대 지연</span><strong id="health">—</strong></div></div>
+      <p id="status" class="status" role="status" aria-live="polite">준비 완료. 상품 조회와 가벼운 상태 확인 요청을 함께 보냅니다.</p>
+      <div id="products" class="products"></div>
+    </section>
+
+    <section class="panel history"><div class="section-label"><span class="step">03</span><h2>실험 기록</h2><span>설정이 같을 때 소요 시간을 비교하세요</span></div><div class="table-scroll"><table><thead><tr><th>처리 방식</th><th>조회 조건</th><th>전체 시간</th><th>상태 확인 최대 지연</th><th>성공</th></tr></thead><tbody id="history"><tr><td colspan="5" class="empty">아직 기록이 없습니다. 첫 조회를 시작해 보세요.</td></tr></tbody></table></div></section>
+    <section class="explain"><h2>무엇을 관찰하면 좋을까요?</h2><div><article><span>01 / 기다림의 차이</span><h3>요청을 동시에 보내도</h3><p>이벤트 루프가 동기 함수에 묶이면 상품 조회가 차례로 처리됩니다. 비동기 I/O는 대기 시간을 겹칠 수 있습니다.</p></article><article><span>02 / 다른 고객의 경험</span><h3>작은 요청도 지연될까요?</h3><p>조회 시작 0.15초 후부터 서버 상태를 확인합니다. 동기 호출이 루프를 막으면 이 가벼운 요청도 늦어집니다.</p></article><article><span>03 / 실무에서의 선택</span><h3>기존 라이브러리가 동기라면</h3><p>대기가 긴 동기 I/O 함수는 to_thread로 분리할 수 있습니다. CPU 연산을 빠르게 만드는 방법과는 다릅니다.</p></article></div></section>
+    <footer>동시성 마켓 <span>학습용 상품 · 실제 주문이나 결제가 발생하지 않습니다.</span><a href="/docs" target="_blank" rel="noopener">API 문서 ↗</a></footer>
+  </main>
+</body>
+</html>
