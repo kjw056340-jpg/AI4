@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>작은 방명록</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main>
+    <header class="intro">
+      <p class="eyebrow">GUESTBOOK</p>
+      <h1>작은 방명록</h1>
+      <p>다녀간 흔적을 한 줄 남겨주세요.</p>
+    </header>
+    <section class="write" aria-labelledby="write-title">
+      <h2 id="write-title">글 남기기</h2>
+      <p class="notice" role="status">${notice}</p>
+      <form action="/entries" method="post" accept-charset="UTF-8">
+        <label for="name">작성자 <small>최대 20자</small></label>
+        <input id="name" name="name" value="${name}" required maxlength="20" autocomplete="nickname">
+        <label for="message">내용 <small>최대 1000자</small></label>
+        <textarea id="message" name="message" rows="4" required maxlength="1000">${message}</textarea>
+        <p class="hint">누구나 읽을 수 있습니다. 개인정보는 남기지 마세요.</p>
+        <button type="submit">등록하기</button>
+      </form>
+    </section>
+    <section aria-labelledby="list-title">
+      <div class="list-heading"><h2 id="list-title">남겨진 이야기</h2><span>${count_label}</span></div>
+      ${entries}
+      <nav aria-label="방명록 페이지"><a href="/">처음</a> ${navigation} <span>${page}페이지</span></nav>
+    </section>
+    <footer>작은 인사가 모이는 곳</footer>
+  </main>
+</body>
+</html>

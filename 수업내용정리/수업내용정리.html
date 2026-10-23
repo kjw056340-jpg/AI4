@@ -1,0 +1,671 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>수업내용정리</title><style>
+body{font-family:'Malgun Gothic',sans-serif;max-width:1000px;margin:48px auto;padding:0 24px;color:#203247;line-height:1.85;background:#fff}h1{font-size:42px}h2{margin-top:68px;padding-top:18px;border-top:2px solid #dce8f1;font-size:29px}h3{margin-top:30px}img{max-width:100%;height:auto}table{width:100%;border-collapse:collapse;font-size:14px;display:block;overflow:auto}td,th{border:1px solid #dce2e8;padding:10px;text-align:left}th{background:#edf4fb}pre{background:#142b41;color:#eef4fa;padding:20px;overflow:auto;border-radius:6px;font-size:14px;line-height:1.65}code{font-family:Consolas,'Malgun Gothic',monospace}blockquote{border-left:4px solid #3982b9;margin:20px 0;padding:8px 20px;background:#f0f6fb}a{color:#146eaa}nav{line-height:2.1} @media(max-width:600px){body{margin:24px auto;padding:0 16px}h1{font-size:32px}h2{font-size:24px}}
+</style></head><body><h1 id="section">수업내용정리</h1>
+<blockquote>
+<p>Python 기초에서 FastAPI 검증까지 · Day1–Day8 학습 노트<br />
+분석 기준: 로컬 수업 소스와 교안 · 2026-10-23</p>
+</blockquote>
+<h2 id="section-1">🗺️ 전체 아키텍처 — 코드가 서비스가 되는 여행</h2>
+<p><img src="assets/07-overall-architecture.png" alt="전체 서비스 아키텍처와 요청·응답 흐름" /></p>
+<p><strong>읽는 순서:</strong> 클라이언트의 HTTP 요청 → Uvicorn 수신 → FastAPI의 경로·메서드 선택 → Pydantic 입력 검증 → 업무 함수 → 응답입니다. 업무 함수는 필요에 따라 외부 API를 기다리거나 SQLite를 사용합니다. 이 두 가지는 선택적인 연결이며 모든 요청에서 연달아 실행되는 단계가 아닙니다.</p>
+<p>그림은 역할을 나눈 개념도입니다. 입력 검증과 업무 함수 호출은 FastAPI의 요청 처리 안에서 이어집니다. SQLite는 별도 <code>Day1-Day8</code> 방명록 종합 사례, 외부 API와 비동기 I/O는 Day7에 해당합니다. FastAPI의 기본 입력 검증에 실패하면 422 응답을 보내며, 모든 종류의 오류가 422인 것은 아닙니다.</p>
+<h2 id="section-2">🧭 이 자료를 읽는 방법</h2>
+<p><strong>입력받기 → 조건으로 판단하기 → 데이터를 구조화하기 → 검증하기 → API로 제공하기 → 테스트로 확인하기</strong>의 흐름으로 복습합니다. 각 일자의 ‘직접 해보기’를 먼저 풀고 마지막의 답과 비교하세요.</p>
+<p>이 문서는 원본 코드를 바탕으로 새로 작성한 해설입니다. ‘교정 예제’는 원본을 수정한 파일이 아니라 이해를 돕기 위한 예제입니다. 원본에는 학생 실습, 의도한 결함, 수정본, 정답이 섞여 있습니다.</p>
+<table>
+<thead>
+<tr>
+<th>구간</th>
+<th>확인한 자료</th>
+<th>학습의 중심</th>
+<th>완료하면 할 수 있는 일</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Day1</td>
+<td>Day1/day1-1.py ~ day1-5.py</td>
+<td>변수·입력·조건·반복</td>
+<td>숫자 게임과 짝수 필터 작성</td>
+</tr>
+<tr>
+<td>Day2</td>
+<td>Day2/오전, Day2/오후</td>
+<td>논리·자료구조·컴프리헨션</td>
+<td>권한 판별과 목록 가공</td>
+</tr>
+<tr>
+<td>Day3</td>
+<td>Day3/오전, Day3/오후</td>
+<td>객체·예외·리팩터링</td>
+<td>상태를 관리하고 잘못된 입력 처리</td>
+</tr>
+<tr>
+<td>Day4</td>
+<td>Day4/day4-1</td>
+<td>인덱스·대입·교환</td>
+<td>값이 덮어써지는 과정 설명</td>
+</tr>
+<tr>
+<td>Day5</td>
+<td>해당 이름의 폴더 없음</td>
+<td>수업 원본 미확인</td>
+<td>아래 보충 FastAPI 자료로 연결</td>
+</tr>
+<tr>
+<td>Day6</td>
+<td>Day6/basemodel, ch04_validator, ch05_nested</td>
+<td>Pydantic 모델·검증</td>
+<td>입력 규칙을 선언하고 오류 위치 확인</td>
+</tr>
+<tr>
+<td>Day7</td>
+<td>Day7/01 ~ 03</td>
+<td>비동기·HTTP·동시성</td>
+<td>대기 시간을 겹치고 외부 응답 검사</td>
+</tr>
+<tr>
+<td>Day8</td>
+<td>Day8/lesson_01 ~ lesson_08</td>
+<td>명세·입력·응답·상태 테스트</td>
+<td>계약에서 기대값을 도출하고 회귀 검사</td>
+</tr>
+</tbody>
+</table>
+<p><img src="assets/01-roadmap.png" alt="전체 학습 흐름" /></p>
+<p><strong>범위 메모:</strong> Day4는 확인한 코드가 짧아 다른 날짜와 같은 분량으로 확대하지 않았습니다. <code>05.FastAPI-uvicorn</code>과 <code>fastapi_win_vscode</code>는 FastAPI 보충 자료로 활용하며 Day5라고 단정하지 않습니다. <code>Day1-Day8</code> 방명록은 별도 종합 결과물로 다룹니다. <code>Day4/login.txt</code>의 내용은 정리에 포함하지 않았습니다.</p>
+<h2 id="day1">01 · Day1 — 프로그램의 기본 흐름</h2>
+<h3 id="section-3">핵심 개념</h3>
+<ul>
+<li><strong>변수와 연산:</strong> <code>number1 = 100</code>처럼 값을 이름에 연결하고 <code>+</code>, <code>*</code>, <code>%</code>로 계산합니다.</li>
+<li><strong>입력과 변환:</strong> <code>input()</code>은 문자열을 반환합니다. 숫자 계산에는 <code>int()</code> 같은 변환이 필요하며 잘못된 입력은 예외가 될 수 있습니다.</li>
+<li><strong>조건:</strong> 점수 60 이상이면 합격처럼 기준을 <code>if/else</code>로 표현합니다. <code>&gt;=</code>는 경계값을 포함합니다.</li>
+<li><strong>반복:</strong> 횟수가 정해지면 <code>for</code>, 조건을 만족할 때까지 반복하면 <code>while</code>을 사용합니다. <code>break</code>는 현재 반복문을 끝냅니다.</li>
+<li><strong>중첩 반복:</strong> 구구단에서 바깥 반복은 단, 안쪽 반복은 곱하는 수를 바꿉니다. <code>range(2, 10)</code>에는 10이 포함되지 않습니다.</li>
+</ul>
+<p><img src="assets/02-flow.png" alt="입력부터 조건 분기까지" /></p>
+<h3 id="section-4">대표 실습: 숫자 다섯 개 중 짝수 찾기</h3>
+<p>원본 <code>Day1/day1-3.py</code>의 흐름을 간결하게 정리한 예제입니다.</p>
+<pre><code class="language-python">scores = []
+for i in range(5):
+    scores.append(int(input(f&quot;{i + 1}번째 숫자: &quot;)))
+
+for score in scores:
+    if score % 2 == 0:
+        print(score)
+</code></pre>
+<p><code>% 2</code>의 결과가 0이면 짝수입니다. 입력과 필터링을 나누면 각 단계의 역할을 확인하기 쉽습니다. 이 예제는 숫자가 아닌 입력의 예외 처리를 생략했습니다. 그 내용은 Day3에서 연결합니다.</p>
+<h3 id="section-5">숫자 맞추기에서 볼 점</h3>
+<p><code>random.randint(1, 100)</code>은 양 끝을 포함한 정수를 만듭니다. 정답보다 큰지·작은지 비교하고, 정답이면 반복을 끝냅니다. 시도 횟수는 입력을 받을 때마다 증가시킵니다.</p>
+<p><strong>원본 점검:</strong> <code>day1-5.py</code>의 <code>print(&quot;정답입니다! 총 시도횟수는 : {count}&quot;)</code>는 앞에 <code>f</code>가 없어 <code>{count}</code>가 문자 그대로 출력됩니다. 교정하면 <code>print(f&quot;정답입니다! 총 시도횟수는 : {count}&quot;)</code>입니다. 같은 파일에 게임 두 버전이 있어 첫 게임이 끝나도 다음 입력이 이어질 수 있습니다.</p>
+<p><strong>직접 해보기:</strong> 59·60·61을 입력하면 각각 합격인가요? <code>[1, 2, 3, 4, 5]</code>에서 짝수의 합과 개수를 계산해 보세요.</p>
+<h2 id="day2">02 · Day2 — 판단 규칙과 데이터 가공</h2>
+<h3 id="section-6">조건을 조립하는 법</h3>
+<table>
+<thead>
+<tr>
+<th>표현</th>
+<th>뜻</th>
+<th>수업 예시</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>A and B</code></td>
+<td>두 조건이 모두 참</td>
+<td>활성 계정이고 인증 완료</td>
+</tr>
+<tr>
+<td><code>A or B</code></td>
+<td>하나 이상이 참</td>
+<td>관리자 또는 매니저</td>
+</tr>
+<tr>
+<td><code>not A</code></td>
+<td>조건의 반대</td>
+<td>정지되지 않은 계정</td>
+</tr>
+<tr>
+<td><code>x in values</code></td>
+<td>목록 등에 포함</td>
+<td>허용된 역할인지 확인</td>
+</tr>
+<tr>
+<td><code>a if 조건 else b</code></td>
+<td>조건에 따라 값 선택</td>
+<td>합격·불합격 문자열</td>
+</tr>
+</tbody>
+</table>
+<p><strong>단락 평가:</strong> <code>and</code>는 앞이 거짓이면 뒤를 평가하지 않습니다. <code>user_profile is not None and user_profile.get(&quot;is_verified&quot;)</code>처럼 작성하면 None에 메서드를 호출하는 일을 피할 수 있습니다. 원본 <code>Day2/오전/day2-2.py</code>의 <code>use_profile</code>은 <code>user_profile</code>과 이름이 달라 실행 시 오류가 발생합니다.</p>
+<h3 id="section-7">자료구조를 선택하는 기준</h3>
+<table>
+<thead>
+<tr>
+<th>자료구조</th>
+<th>용도</th>
+<th>주의할 점</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>list</td>
+<td>순서 있는 값들, 추가·수정</td>
+<td>순회 중 원본을 삭제하면 항목을 건너뛸 수 있음</td>
+</tr>
+<tr>
+<td>dict</td>
+<td>이름과 값의 연결</td>
+<td>없는 키를 <code>[]</code>로 읽으면 KeyError</td>
+</tr>
+<tr>
+<td>tuple</td>
+<td>위치가 정해진 값의 묶음</td>
+<td>요소 자체를 다시 대입할 수 없음</td>
+</tr>
+<tr>
+<td>set</td>
+<td>중복 제거·포함 검사</td>
+<td>입력 순서를 보장하는 용도로 쓰지 않음</td>
+</tr>
+</tbody>
+</table>
+<p><code>dict(zip([&quot;a&quot;, &quot;b&quot;], [100, 200]))</code>은 <code>{&quot;a&quot;: 100, &quot;b&quot;: 200}</code>을 만듭니다. 일반적인 <code>zip</code>은 가장 짧은 입력 길이에서 끝납니다.</p>
+<h3 id="section-8">대표 실습: 역할별 권한과 목록 필터</h3>
+<pre><code class="language-python">for user in test_users:
+    if user[&quot;is_suspended&quot;]:
+        print(&quot;정지된 계정입니다&quot;)
+        continue
+    role = user[&quot;user_role&quot;]
+    if role in [&quot;admin&quot;, &quot;manager&quot;]:
+        print(&quot;관리 기능 허용&quot;)
+    elif role == &quot;user&quot;:
+        print(&quot;개인 데이터 조회&quot;)
+    else:
+        print(&quot;별도 정책 확인&quot;)
+
+items = [&quot;정상&quot;, &quot;불량&quot;, &quot;불량&quot;, &quot;정상&quot;]
+clean = [item for item in items if item != &quot;불량&quot;]
+</code></pre>
+<p>위 권한 예제는 설명을 위해 원본보다 단순화했습니다. 실제 <code>day2-7.py</code>는 admin·manager·user·guest와 알 수 없는 역할을 각각 분리합니다.</p>
+<p><code>[i for i in numbers if i % 2 == 0]</code>는 일부 값만 남깁니다. <code>[&quot;성인&quot; if age &gt;= 20 else &quot;미성년&quot; for age in ages]</code>는 모든 값을 변환하므로 결과 개수가 같습니다.</p>
+<p><strong>금칙어 전처리:</strong> 빈 문자열 제거 → set으로 중복 제거 → 길이 내림차순 정렬 → join으로 연결합니다. 긴 단어부터 확인하는 규칙을 표현한 예입니다. 원본의 <code>set(1,2,3,...)</code> 호출은 잘못된 형식이며 <code>set([1,2,3])</code>처럼 하나의 iterable을 전달해야 합니다.</p>
+<p><strong>직접 해보기:</strong> <code>[20,15,60]</code>을 ‘성인/미성년’으로 바꾸는 결과와 성인만 남기는 결과를 각각 써 보세요. 정지 계정을 역할 검사보다 먼저 처리하는 이유도 설명해 보세요.</p>
+<h2 id="day3">03 · Day3 — 객체, 예외, 유지보수하기 쉬운 코드</h2>
+<h3 id="section-9">객체가 필요한 이유</h3>
+<p>바리스타 로봇은 원두량과 누적 추출 수를 기억하며 추출 동작을 수행합니다. 서로 다른 로봇 인스턴스는 상태를 따로 가집니다. 디지털 지갑은 잔액과 입금 동작을 묶고 setter로 음수 잔액을 거절합니다.</p>
+<p><img src="assets/03-object.png" alt="데이터와 동작을 묶은 객체" /></p>
+<table>
+<thead>
+<tr>
+<th>개념</th>
+<th>수업 속 예</th>
+<th>기억할 점</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>생성자 <code>__init__</code></td>
+<td>로봇 이름·원두 초기화</td>
+<td>인스턴스 상태의 출발점</td>
+</tr>
+<tr>
+<td>인스턴스 메서드</td>
+<td><code>brew_espresso()</code></td>
+<td><code>self</code>의 상태를 읽거나 변경</td>
+</tr>
+<tr>
+<td>property</td>
+<td>지갑의 balance</td>
+<td>읽기·쓰기에 규칙을 연결</td>
+</tr>
+<tr>
+<td>상속·오버라이딩</td>
+<td>VisionClassifier, TextSummarizerLLM</td>
+<td>같은 predict 호출에 다른 동작</td>
+</tr>
+<tr>
+<td>추상 클래스</td>
+<td>PaymentGateway</td>
+<td>공통 동작의 구현 의무 표현</td>
+</tr>
+<tr>
+<td>dataclass</td>
+<td>PaymentReceipt</td>
+<td>필드 중심 데이터의 선언 간소화</td>
+</tr>
+</tbody>
+</table>
+<p><code>__balance</code>의 이름 맹글링은 실수 방지에 도움이 되지만 보안 경계는 아닙니다. 일반 클래스의 타입 힌트만으로 입력이 자동 검증되지도 않습니다.</p>
+<p><strong>원본 점검:</strong> <code>Day3/오전/day3-4.py</code>는 <code>@abstractmethod</code>를 사용하지만 <code>ABC</code>를 상속하지 않습니다. 추상 메서드의 구현을 강제하려면 다음처럼 작성합니다.</p>
+<pre><code class="language-python">from abc import ABC, abstractmethod
+
+class PaymentGateway(ABC):
+    @abstractmethod
+    def process_payment(self, item: str, amount: int) -&gt; str:
+        pass
+</code></pre>
+<h3 id="section-10">예외는 입력의 실패 원인을 구분하는 도구</h3>
+<p>로그 문자열을 split하여 dict로 만든 뒤 숫자로 변환하는 실습에서는 숫자 형식이 틀리면 ValueError, 키가 빠지면 KeyError가 발생합니다. 원본 <code>day3-1.py</code>는 split 전처리가 try 바깥에 있어 형식이 깨진 로그의 모든 오류를 처리하는 구조는 아닙니다.</p>
+<ul>
+<li><code>try</code>: 실패할 수 있는 처리</li>
+<li><code>except</code>: 해당 예외에 대한 대응</li>
+<li><code>else</code>: try가 정상 종료되었을 때 수행</li>
+<li><code>finally</code>: 예외 발생 여부와 관계없이 정리·기록</li>
+</ul>
+<p><strong>주의:</strong> <code>except Exception</code>으로 모든 문제를 같은 메시지로 바꾸면 원인이 감춰질 수 있습니다. 아는 오류를 좁게 처리하고, 원인 정보와 사용자용 설명을 구분하세요.</p>
+<h3 id="section-11">리팩터링 사례 두 가지</h3>
+<p><strong>주문 계산:</strong> 등급 숫자를 Enum 이름으로 바꾸고 할인율을 한곳에 모읍니다. 가격·수량·쿠폰을 검증한 후 ‘등급 할인 → 쿠폰 차감 → 최소 0원 → 원 단위 버림’ 순서를 유지합니다. 수정본은 금액 계산에 정수 연산을 사용합니다. Python에서 bool은 int의 하위 타입이므로 bool 허용 여부도 별도로 판단합니다.</p>
+<p><strong>점수 전처리:</strong> 원본 <code>day3-4.py</code>는 키 누락·변환 실패·범위 초과를 방어하지 못합니다. <code>fixed</code>와 <code>after</code> 버전은 구조·키·bool·변환·유한수·0~100 범위를 검사합니다. 유효한 점수만 100으로 나누고, after 버전은 행별 오류와 성공률 등을 보고서로 만듭니다. 빈 입력의 평균이나 성공률은 계산 불가를 나타내는 None으로 처리합니다.</p>
+<p><strong>직접 해보기:</strong> <code>{&quot;score&quot;: &quot;N/A&quot;}</code>, <code>{&quot;score&quot;: 120}</code>, <code>{&quot;score&quot;: True}</code>, <code>{}</code>를 왜 각각 거절해야 할까요? 잘못된 행을 건너뛰면 입력과 결과의 길이가 같을까요?</p>
+<h2 id="day4">04 · Day4 — 값의 교환과 대입 순서</h2>
+<p>확인한 <code>Day4/day4-1</code>은 확장자 없는 Python 코드이며 난수 열 개를 만든 뒤 양끝 인덱스에 대입합니다.</p>
+<pre><code class="language-python"># 원본: 첫 값을 덮어쓴 뒤 같은 값을 다시 읽습니다.
+numbers[0] = numbers[-1]
+numbers[-1] = numbers[0]
+
+# 교정 예제: 오른쪽 두 값을 먼저 평가하여 교환합니다.
+numbers[0], numbers[-1] = numbers[-1], numbers[0]
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>단계</th>
+<th>원본: [10,20,30]</th>
+<th>교정 예제</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>시작</td>
+<td>[10,20,30]</td>
+<td>[10,20,30]</td>
+</tr>
+<tr>
+<td>첫 대입 후</td>
+<td>[30,20,30]</td>
+<td>오른쪽에서 30,10을 먼저 준비</td>
+</tr>
+<tr>
+<td>최종</td>
+<td>[30,20,30]</td>
+<td>[30,20,10]</td>
+</tr>
+</tbody>
+</table>
+<p><strong>핵심:</strong> 대입은 이전 값을 자동으로 기억하지 않습니다. <code>numbers[-1]</code>은 마지막 요소입니다. 이 예제는 길이 10의 리스트를 만들어 빈 리스트의 인덱스 문제는 발생하지 않습니다.</p>
+<p><strong>직접 해보기:</strong> <code>[3,7,9]</code>에 원본 두 줄을 실행한 결과와 교정 예제를 실행한 결과를 비교하세요.</p>
+<h3 id="section-12">🎬 쉬어가는 만화 1 — 파이썬 탐정단</h3>
+<p><img src="assets/08-comic-python.png" alt="4컷 만화: 조건·필터링·대입과 값 교환" /></p>
+<p><strong>만화 속 핵심:</strong> 60점은 <code>&gt;= 60</code>에 포함되고, <code>% 2 == 0</code>은 짝수만 고릅니다. 값을 차례로 덮어쓰면 처음 값이 사라질 수 있으므로 교환할 때는 오른쪽 값을 먼저 평가하는 <code>a, b = b, a</code>를 사용합니다. 3컷은 덮어쓰기 전후, 4컷은 올바른 교환 전후를 보여줍니다.</p>
+<p><strong>한 줄 퀴즈:</strong> <code>a=10</code>, <code>b=30</code>에서 <code>a=b; b=a</code>를 하면 두 값은 어떻게 될까요? → 둘 다 30입니다.</p>
+<h2 id="day5-fastapi">05 · Day5 — 원본 미확인 / FastAPI 보충 학습</h2>
+<p><strong>Day5 폴더는 없습니다.</strong> 다음은 <code>05.FastAPI-uvicorn/labs/lesson01.py ~ lesson04.py</code>에서 확인한 보충 내용입니다. 폴더 이름의 05를 수업 날짜로 확정하지 않았습니다.</p>
+<h3 id="section-13">요청이 응답이 되기까지</h3>
+<p><img src="assets/architecture.png" alt="기존 교안의 FastAPI 구조 자료" /></p>
+<p>출처: 로컬 <code>05.FastAPI-uvicorn/assets/architecture.png</code>의 기존 수업 시각 자료.</p>
+<p>Uvicorn이 서버를 실행하고 FastAPI가 메서드·경로에 맞는 함수를 찾습니다. 경로·쿼리·본문에서 입력을 받고, 처리 결과는 응답으로 전달됩니다.</p>
+<pre><code class="language-python">from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.get(&quot;/&quot;)
+def root():
+    return {&quot;message&quot;: &quot;Hello FastAPI&quot;}
+</code></pre>
+<p><code>@app.get</code>은 모듈을 읽을 때 경로를 등록합니다. 함수 본문은 해당 요청이 들어왔을 때 실행됩니다. 해당 모듈이 <code>main.py</code>이고 그 폴더에서 실행한다면 <code>python -m uvicorn main:app --reload</code>로 개발 서버를 켭니다. <code>main</code>은 모듈, <code>app</code>은 그 안의 객체입니다. 다른 파일명이라면 명령도 달라집니다.</p>
+<table>
+<thead>
+<tr>
+<th>요청</th>
+<th>위치·역할</th>
+<th>보충 자료에서의 예</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td>조회</td>
+<td><code>/</code>, <code>/sports</code>, <code>/tasks</code></td>
+</tr>
+<tr>
+<td>POST</td>
+<td>생성·처리</td>
+<td><code>/method</code>에 생성 성공 201 지정</td>
+</tr>
+<tr>
+<td>Path</td>
+<td>대상을 식별</td>
+<td><code>/tasks/{task_id}</code></td>
+</tr>
+<tr>
+<td>Query</td>
+<td>검색·필터·페이지 조건</td>
+<td><code>?q=Python&amp;done=false&amp;skip=0&amp;limit=10</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>/tasks/stats</code> 같은 고정 경로를 <code>/tasks/{task_id}</code>보다 먼저 선언하는 예제가 있습니다. 조회 목록은 검색·완료 필터를 적용하고 전체 개수를 계산한 뒤 <code>skip:skip + limit</code>로 일부를 가져옵니다. 루트 <code>/</code>는 각 앱에서 선언한 경우에만 존재합니다.</p>
+<p><img src="assets/parameters.png" alt="기존 교안의 요청 매개변수 자료" /></p>
+<p>출처: 로컬 <code>05.FastAPI-uvicorn/assets/parameters.png</code>.</p>
+<p><strong>직접 해보기:</strong> <code>/items/3?qty=2</code>에서 Path 값과 Query 값을 각각 찾아보세요. Swagger의 <code>/docs</code>와 기계가 읽는 <code>/openapi.json</code>이 하는 일은 어떻게 다를까요?</p>
+<h2 id="day6-pydantic">06 · Day6 — Pydantic으로 데이터 검증</h2>
+<h3 id="section-14">모델은 데이터의 규칙을 선언한다</h3>
+<p>일반 클래스의 <code>age: int</code>는 주로 설명과 정적 분석을 위한 힌트입니다. Pydantic의 BaseModel은 인스턴스를 만들거나 model_validate를 호출할 때 실제 데이터를 검사합니다.</p>
+<pre><code class="language-python">from pydantic import BaseModel, ConfigDict, Field
+
+class Product(BaseModel):
+    model_config = ConfigDict(extra=&quot;forbid&quot;)
+    title: str = Field(min_length=2, max_length=60)
+    price: int = Field(gt=0, strict=True)
+    stock: int = Field(default=0, ge=0)
+    sku: str = Field(pattern=r&quot;^SKU-[0-9]{4}$&quot;)
+</code></pre>
+<p>위는 원본 실습의 TODO 조건에 맞춘 <strong>교정 예제</strong>입니다. 원본 <code>exercise.py</code>는 ‘가격 0보다 큼’이라는 주석과 달리 <code>ge=0</code>이라 0을 허용하고, product·ValidationError·main 정의도 빠져 있어 그대로 실행할 완성본으로 보면 안 됩니다.</p>
+<p><img src="assets/04-validation.png" alt="검증 전후의 데이터 흐름" /></p>
+<table>
+<thead>
+<tr>
+<th>선언</th>
+<th>의미</th>
+<th>예</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>age: int</code></td>
+<td>필수 필드</td>
+<td>일반 설정에서는 <code>&quot;34&quot;</code>를 34로 변환 가능</td>
+</tr>
+<tr>
+<td><code>nickname: str \| None = None</code></td>
+<td>생략·None 허용</td>
+<td>선택 별명</td>
+</tr>
+<tr>
+<td><code>value: int \| str</code></td>
+<td>여러 타입 허용</td>
+<td>정수·문자열 학번</td>
+</tr>
+<tr>
+<td><code>gt=0</code> / <code>ge=0</code></td>
+<td>0 초과 / 0 이상</td>
+<td>가격 / 재고</td>
+</tr>
+<tr>
+<td><code>strict=True</code></td>
+<td>자동 변환을 제한</td>
+<td>엄격한 정수 입력</td>
+</tr>
+<tr>
+<td><code>extra=&quot;forbid&quot;</code></td>
+<td>정의하지 않은 필드 거절</td>
+<td>오타 필드 발견</td>
+</tr>
+<tr>
+<td><code>model_dump()</code></td>
+<td>모델을 dict로 변환</td>
+<td>출력·후속 처리</td>
+</tr>
+</tbody>
+</table>
+<p>None을 허용하는 타입과 생략 가능한 필드는 같은 뜻이 아닙니다. <code>nickname: str | None</code>만 선언하면 값은 None일 수 있어도 필드는 여전히 필수이며, 생략까지 허용하려면 기본값을 지정해야 합니다.</p>
+<h3 id="section-15">필드·모델·중첩 검증</h3>
+<p><code>field_validator</code>는 아이디 공백·소문자 정리나 태그 문자열 분해처럼 한 필드에 규칙을 둡니다. <code>mode=&quot;before&quot;</code>는 타입 검증 이전의 입력을 다룰 수 있습니다. <code>model_validator(mode=&quot;after&quot;)</code>는 비밀번호 확인 일치, 예약 시작·종료일 순서처럼 여러 필드의 관계를 검사합니다.</p>
+<p>원본 Reservation의 조건 <code>start &gt; end</code>는 <strong>종료일이 시작일보다 이르면 거절</strong>한다는 뜻입니다. 원본 오류 메시지는 이 관계를 반대로 표현하므로 조건식을 기준으로 읽어야 합니다. 시작일과 종료일이 같은 경우는 이 조건에서 허용됩니다.</p>
+<p>중첩 모델에서는 Order 안에 Address, <code>list[OrderItem]</code>, 배송 방식 Enum을 넣습니다. <code>ValidationError.errors()</code>의 loc는 예를 들어 <code>('items', 0, 'quantity')</code>처럼 잘못된 위치를 알려 줍니다.</p>
+<p><strong>직접 해보기:</strong> 가격 0, 재고 -1, SKU-001은 위 교정 모델에서 통과하나요? <code>&quot;20&quot;</code>과 20의 차이를 strict=True 적용 전후로 설명해 보세요.</p>
+<h3 id="pydantic">🎬 쉬어가는 만화 2 — Pydantic 공항</h3>
+<p><img src="assets/09-comic-validation.png" alt="4컷 만화: 타입 힌트와 실제 검증, 자동 변환과 엄격한 정수 검사" /></p>
+<p><strong>만화 속 핵심:</strong> 일반 클래스의 타입 힌트만으로 입력을 막지는 않습니다. Pydantic은 모델 생성 시 검증하며, 일반 정수 필드는 문자열 <code>&quot;20&quot;</code>을 20으로 변환할 수 있습니다. <code>int</code> 필드에 <code>strict=True</code>를 적용하면 문자열 <code>&quot;20&quot;</code>은 거절합니다. 범위 검사에서 수량 0은 1~5에 들어가지 않습니다. 만화의 ‘오류 위치 지도’는 설명용 표현이며 실제 오류 위치는 <code>ValidationError.errors()</code>의 <code>loc</code>에서 확인합니다.</p>
+<p><strong>한 줄 퀴즈:</strong> <code>price: int = Field(gt=0, strict=True)</code>에 <code>&quot;100&quot;</code>을 넣으면? → 문자열이므로 거절합니다.</p>
+<h2 id="day7">07 · Day7 — 기다림을 겹치는 비동기 처리</h2>
+<h3 id="async">async는 어디서 기다리느냐가 중요하다</h3>
+<p><code>async def</code>만 붙여도 모든 처리가 빨라지지는 않습니다. 이벤트 루프 안에서 <code>time.sleep(2)</code>를 직접 호출하면 다른 작업도 기다립니다. <code>await asyncio.sleep(2)</code>는 기다리는 동안 다른 작업이 진행될 기회를 줍니다. 기존 동기 I/O 함수를 유지해야 한다면 수업 예제처럼 <code>await asyncio.to_thread(...)</code>로 별도 스레드에 맡길 수 있습니다.</p>
+<p><img src="assets/05-concurrency.png" alt="순차 대기와 동시 대기 시간 비교" /></p>
+<p>이 그림은 각각 2초씩 기다리는 두 작업의 <strong>이론적 비교</strong>이며 이번 작업의 실제 측정 결과가 아닙니다. 실제 시간에는 실행 비용·네트워크·서버 제한 등이 더해집니다. 동시성은 여러 I/O 대기를 겹치는 개념이며 CPU 계산의 병렬 실행을 자동 보장하지 않습니다.</p>
+<pre><code class="language-python">import asyncio
+
+async def make_drink(name):
+    await asyncio.sleep(2)
+    return name
+
+async def main():
+    drinks = await asyncio.gather(
+        make_drink(&quot;커피&quot;), make_drink(&quot;차&quot;)
+    )
+    print(drinks)
+
+asyncio.run(main())
+</code></pre>
+<h3 id="api">외부 API를 읽을 때의 확인 순서</h3>
+<ol>
+<li>연결과 타임아웃을 확인합니다.</li>
+<li><code>response.raise_for_status()</code>로 실패 HTTP 상태를 확인합니다.</li>
+<li>JSON 변환이 가능한지 확인합니다.</li>
+<li>dict·필수 키·필드 타입 등 업무에 필요한 응답 구조를 검증합니다.</li>
+<li>요청 ID와 응답을 함께 보관해 완료 순서가 바뀌어도 연결을 유지합니다.</li>
+</ol>
+<p><strong>원본에서 찾은 점검 포인트</strong></p>
+<ul>
+<li><code>Day7/02/main.py</code>의 <code>'f/todos/{todo_id}'</code>는 f-string이 아닙니다. 의도한 주소는 <code>f'/todos/{todo_id}'</code>입니다. <code>raise_for_status()</code>가 빠져 HTTPStatusError 처리도 기대대로 작동하지 않으며 실패 후 data가 정의되지 않는 경로도 주의해야 합니다.</li>
+<li><code>Day7/03/main.py</code>는 as_completed로 완료된 순서대로 결과를 모은 뒤 원래 ID와 zip합니다. 응답이 2→3→1 순서로 끝나면 요청 ID가 잘못 연결될 수 있습니다. 작업이 <code>(item_id, data)</code>를 함께 반환하도록 바꾸면 관계를 보존할 수 있습니다.</li>
+<li>gather는 결과를 전달한 작업의 순서로 모으며, as_completed는 완료 순서로 처리합니다. 실패 전파·취소 정책은 별도로 설계해야 합니다.</li>
+<li>mock_api.py는 지연·404·503·깨진 JSON·필드 누락·429·재시도를 실험할 자료입니다. 파일에 시나리오가 있다고 해서 모든 방어 로직이 구현되어 있다는 뜻은 아닙니다.</li>
+</ul>
+<p><strong>체험 자료:</strong> <code>Day7/01/shop_concurrency</code>에는 blocking·async·thread 상품 조회를 비교하는 화면이 있습니다. 실행 경로는 실제 폴더를 기준으로 사용하세요. README에 있는 일부 예시 경로에는 <code>01</code>이 빠져 있습니다.</p>
+<p><strong>직접 해보기:</strong> 0.6초·0.1초·0.3초 작업을 동시에 시작하면 어떤 순서로 완료될까요? 번호를 함께 반환해야 하는 이유를 설명해 보세요.</p>
+<h2 id="day8-api">08 · Day8 — 동작을 확인하는 API 테스트</h2>
+<p>Day8 안에는 <strong>8개의 차시</strong>가 있습니다. 이 차시 번호와 Day1~Day8의 날짜 구분을 혼동하지 마세요. 기대값은 현재 코드의 결과를 복사하지 않고 README의 업무 계약과 TEST_CASES.md에서 정합니다.</p>
+<table>
+<thead>
+<tr>
+<th>차시</th>
+<th>핵심 질문</th>
+<th>실제 소스에서 확인한 사항</th>
+<th>검증할 결과</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 Swagger·OpenAPI</td>
+<td>호출되는 경로가 문서에도 있는가?</td>
+<td>현재 main은 include_in_schema=True</td>
+<td>/greet 호출과 OpenAPI paths 모두 확인</td>
+</tr>
+<tr>
+<td>2 Path·Query</td>
+<td>생략·끝값에서도 맞는가?</td>
+<td>현재 qty 기본값 1, 범위 1~5</td>
+<td>생략·1·5 성공, 0·6 오류</td>
+</tr>
+<tr>
+<td>3 요청 본문</td>
+<td>타입·누락·추가 필드 정책은?</td>
+<td>strict 정수와 extra=forbid 적용</td>
+<td>정상 201, 잘못된 입력 422</td>
+</tr>
+<tr>
+<td>4 AI 테스트</td>
+<td>할인 경계를 놓치지 않았는가?</td>
+<td>현재 amount &gt; 10000</td>
+<td>10000 이상 1000원 할인 계약 대조</td>
+</tr>
+<tr>
+<td>5 오류 응답</td>
+<td>없는 상품이 200으로 위장되는가?</td>
+<td>except Exception이 404를 삼킴</td>
+<td>존재 200, 없음 404, 입력 오류 422</td>
+</tr>
+<tr>
+<td>6 응답 계약</td>
+<td>내부 정보가 나가는가?</td>
+<td>ProfileOut에 internal_note 포함</td>
+<td>공개 필드만 존재하고 내부 필드 부재</td>
+</tr>
+<tr>
+<td>7 상태 시나리오</td>
+<td>두 번째 생성이 첫 항목을 지우는가?</td>
+<td>task_id를 항상 1로 사용</td>
+<td>서로 다른 ID와 두 데이터 보존</td>
+</tr>
+<tr>
+<td>8 종합 검증</td>
+<td>실패 뒤 상태도 안전한가?</td>
+<td>좌석을 먼저 차감한 뒤 부족 검사</td>
+<td>거절 후 남은 좌석·기존 예약 보존</td>
+</tr>
+</tbody>
+</table>
+<p><strong>현재 코드와 과거 기록 구분:</strong> 차시 1~3의 README·VERIFICATION에는 제작 당시 의도한 결함이 설명되어 있지만 현재 main.py는 이미 교정된 부분이 있습니다. 그 기록을 현재 실행 결과로 인용하지 않았습니다. 이번 정리에서는 코드를 읽어 분석했으며 전체 테스트를 새로 실행했다고 주장하지 않습니다.</p>
+<h3 id="section-16">문서와 실행 결과를 구분하기</h3>
+<p>Swagger UI의 Example Value는 예시입니다. Try it out → Execute 후 <strong>Server response</strong>가 실제 결과입니다. OpenAPI는 기계가 읽는 명세이며 문서가 생성되었다는 사실만으로 업무 규칙이 맞는지는 알 수 없습니다.</p>
+<h3 id="section-17">경계값: 10000원 할인</h3>
+<table>
+<thead>
+<tr>
+<th>입력 금액</th>
+<th>계약상 할인</th>
+<th>계약상 결제액</th>
+<th>현재 <code>&gt; 10000</code> 코드</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>9999</td>
+<td>0</td>
+<td>9999</td>
+<td>계약과 일치</td>
+</tr>
+<tr>
+<td>10000</td>
+<td>1000</td>
+<td>9000</td>
+<td>할인 0으로 불일치</td>
+</tr>
+<tr>
+<td>10001</td>
+<td>1000</td>
+<td>9001</td>
+<td>계약과 일치</td>
+</tr>
+</tbody>
+</table>
+<p>교정 방향은 조건을 <code>amount &gt;= 10000</code>으로 바꾸는 것입니다. 테스트 기대값을 잘못된 구현에 맞춰 바꾸면 결함을 놓칩니다.</p>
+<pre><code class="language-python">import pytest
+from fastapi.testclient import TestClient
+from main import app
+
+client = TestClient(app)
+
+@pytest.mark.parametrize(&quot;amount, payable&quot;, [
+    (9999, 9999), (10000, 9000), (10001, 9001)
+])
+def test_discount_boundary(amount, payable):
+    response = client.post(&quot;/quotes&quot;, json={&quot;amount&quot;: amount})
+    assert response.status_code == 200
+    assert response.json()[&quot;payable&quot;] == payable
+</code></pre>
+<p>이 예제는 lesson_04 폴더의 main을 대상으로 하는 설명용 검사입니다. 원본이 수정되지 않았다면 가운데 입력에서 실패할 것으로 코드상 예상됩니다.</p>
+<h3 id="section-18">실패 응답 뒤에도 상태가 맞아야 한다</h3>
+<p><img src="assets/06-reservation.png" alt="예약의 성공·실패·회복 시나리오" /></p>
+<p>정원 4석에서 3석 예약 성공 → 2석 추가 예약 거절 → 1석 예약 성공이 되어야 합니다. 기대 상태는 201 → 409 → 201이며 잔여 좌석은 1 → 1 → 0입니다. 거절 전에 좌석을 빼면 실패가 다음 요청까지 망가뜨립니다. <code>raise HTTPException</code>은 앞서 변경한 메모리 상태를 자동으로 되돌리지 않습니다.</p>
+<pre><code class="language-python"># 교정 원리: 먼저 확인하고 성공할 때만 변경합니다.
+if body.seats &gt; app.state.remaining:
+    raise HTTPException(status_code=409, detail=&quot;Not enough seats&quot;)
+app.state.remaining -= body.seats
+</code></pre>
+<p>이 간단한 메모리 예제는 단일 프로세스 학습용입니다. 운영 환경의 동시 예약·여러 worker·영속성까지 보장하는 구현으로 확대 해석하지 않습니다.</p>
+<h3 id="section-19">테스트 실행과 기록</h3>
+<p>차시별 main 모듈 이름이 같으므로 각 lesson 폴더 안에서 <code>python -m pytest -q test_api.py</code>로 실행합니다. TestClient는 프로세스 안에서 app을 호출하므로 별도 Uvicorn 서버가 필요하지 않습니다. Swagger로 실행하는 서버의 메모리와 테스트의 메모리는 별개입니다. fixture로 테스트 간 공유 상태를 초기화하면 실행 순서에 따른 간섭을 줄일 수 있습니다.</p>
+<p>좋은 검증 보고서에는 입력, 계약상 기대값, 실제 상태·본문, 수정 전 실패, 수정 이유, 수정 후 회귀 결과, 미검증 범위를 함께 적습니다. AI가 만든 테스트도 정상·경계·오류·필드 부재·상태 변화의 누락을 검토해야 합니다.</p>
+<h3 id="api-1">🎬 쉬어가는 만화 3 — 카페 API의 하루</h3>
+<p><img src="assets/10-comic-async-testing.png" alt="6컷 만화: 비동기 대기와 요청 번호, 예약 실패 후 상태 보존" /></p>
+<p><strong>앞의 세 컷:</strong> 이벤트 루프에서 동기 <code>time.sleep</code>을 직접 실행하면 다른 작업도 막힙니다. 비동기 대기 중에는 다른 작업이 진행할 수 있고, 먼저 끝난 결과라도 원래 요청 번호와 함께 보관해야 합니다. 만화의 1초·5초는 설명용 대기 시간이며 실제 측정값이 아닙니다.</p>
+<p><strong>뒤의 세 컷:</strong> 정원 4석에서 A의 3석 예약 후 잔여 1석 → B의 2석 요청 거절 후에도 잔여 1석 → C의 마지막 1석 예약 후 잔여 0석입니다. 기대 상태는 <strong>201 → 409 → 201</strong>입니다. 실패 응답뿐 아니라 장부와 다음 정상 요청까지 확인하는 것이 핵심입니다.</p>
+<p><strong>한 줄 퀴즈:</strong> 409를 반환하면 앞에서 변경한 메모리도 자동으로 되돌아갈까요? → 아닙니다. 먼저 검사하고 성공할 때만 상태를 변경해야 합니다.</p>
+<h2 id="section-20">🧩 종합 연결 — 작은 방명록</h2>
+<p><code>Day1-Day8</code>은 원본 날짜별 수업 폴더와 구분되는 결과물입니다. README·ANALYSIS에서 Python 조건·반복, Pydantic 입력 검증, FastAPI 라우트, SQLite 저장과 HTML 응답을 연결한 사례를 확인할 수 있습니다.</p>
+<p><strong>폼 입력 → 길이·형식 검사 → Pydantic 검증 → SQLite 저장 → 303 이동 → 목록 HTML</strong></p>
+<p>글 전체 최대 1000개, 한 페이지 20개, 작성자 1<sub>20자·내용 1</sub>1000자 등의 정책은 이 방명록의 규칙입니다. 모든 수업에 공통인 규칙은 아닙니다. SQL 매개변수와 HTML escape는 각각 저장 단계와 화면 출력 단계의 문제를 다룹니다.</p>
+<h2 id="section-21">✅ 복습 답안과 체크리스트</h2>
+<table>
+<thead>
+<tr>
+<th>질문</th>
+<th>확인할 답</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Day1: 59·60·61</td>
+<td>불합격·합격·합격. 짝수 2·4의 합 6, 개수 2</td>
+</tr>
+<tr>
+<td>Day2: 20·15·60</td>
+<td>변환: 성인·미성년·성인 / 필터: 20·60</td>
+</tr>
+<tr>
+<td>Day3: 잘못된 점수</td>
+<td>변환 불가·범위 초과·bool·필수 키 누락. 행을 제외하면 길이는 달라질 수 있음</td>
+</tr>
+<tr>
+<td>Day4: [3,7,9]</td>
+<td>원본 [9,7,9] / 교환 [9,7,3]</td>
+</tr>
+<tr>
+<td>보충 FastAPI: /items/3?qty=2</td>
+<td>Path는 3, Query는 qty=2</td>
+</tr>
+<tr>
+<td>Day6: 가격·재고·SKU</td>
+<td>교정 예제에서 0·-1·SKU-001은 각각 거절</td>
+</tr>
+<tr>
+<td>Day7: 완료 순서</td>
+<td>같은 시각에 시작했다는 가정에서 0.1 → 0.3 → 0.6초</td>
+</tr>
+<tr>
+<td>Day8: 예약 후 잔여</td>
+<td>1 → 1 → 0. 실패가 상태를 바꾸면 안 됨</td>
+</tr>
+</tbody>
+</table>
+<ul class="contains-task-list">
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> 변수·조건·반복으로 작은 문제를 해결할 수 있다.</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> 필터링과 값 변환의 차이를 설명할 수 있다.</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> 객체의 상태와 메서드를 구분할 수 있다.</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> 예외를 원인에 따라 분리하고, 메시지로 오류를 숨기지 않는다.</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> 일반 타입 힌트와 Pydantic 실행 검증을 구분할 수 있다.</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> Path·Query·Body의 위치와 검증을 설명할 수 있다.</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> blocking·async·thread의 대기 방식을 설명할 수 있다.</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> 정상·경계·오류·상태 변화에서 기대값을 먼저 정할 수 있다.</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> 현재 소스와 과거 검증 기록을 구분할 수 있다.</li>
+</ul>
+<h2 id="section-22">📚 원본 위치와 공식 참고 자료</h2>
+<p>로컬 원본 기준 경로는 <code>C:\Users\Playdata\dev</code>입니다. Notion에서 로컬 경로가 웹 링크처럼 열리지는 않으므로 아래 경로는 파일을 찾기 위한 표기입니다.</p>
+<ul>
+<li>Day1: <code>Day1/day1-1.py ~ day1-5.py</code></li>
+<li>Day2: <code>Day2/오전/day2-1.py ~ day2-8.py</code>, <code>Day2/오후/day2-1.py ~ day2-4.py</code></li>
+<li>Day3 객체: <code>Day3/오전/day3-1.py ~ day3-4-1.py</code></li>
+<li>Day3 예외·리팩터링: <code>Day3/오후/day3-1.py ~ day3-4*.py</code></li>
+<li>Day4: <code>Day4/day4-1</code></li>
+<li>FastAPI 보충: <code>05.FastAPI-uvicorn/labs/lesson01.py ~ lesson04.py</code>, <code>fastapi_win_vscode/labs</code></li>
+<li>Day6: <code>Day6/basemodel</code>, <code>Day6/ch04_validator/demo.py</code>, <code>Day6/ch05_nested</code></li>
+<li>Day7: <code>Day7/01</code>, <code>Day7/02</code>, <code>Day7/03</code></li>
+<li>Day8: 각 lesson의 <code>README.md</code>, <code>main.py</code>, <code>solution.py</code>, <code>TEST_CASES.md</code>, <code>test_api.py</code>, <code>VERIFICATION.md</code></li>
+<li>종합 사례: <code>Day1-Day8/README.md</code>, <code>Day1-Day8/ANALYSIS.md</code></li>
+</ul>
+<p>아래 공식 자료는 개념을 재확인하거나 심화할 때 사용합니다. 로컬 requirements의 수업 버전과 웹 최신 문서의 버전은 다를 수 있습니다.</p>
+<ul>
+<li><a href="https://docs.python.org/3/tutorial/classes.html">Python — 클래스</a>: 데이터와 동작을 묶는 객체의 기본 개념.</li>
+<li><a href="https://docs.python.org/3/library/asyncio-task.html">Python — 코루틴과 태스크</a>: async/await·gather·as_completed·to_thread의 세부 동작.</li>
+<li><a href="https://docs.pydantic.dev/latest/concepts/validators/">Pydantic — Validators</a>: 필드·모델 검증과 실행 순서.</li>
+<li><a href="https://fastapi.tiangolo.com/tutorial/query-params/">FastAPI — Query Parameters</a>: 쿼리 입력·기본값·필수 여부.</li>
+<li><a href="https://fastapi.tiangolo.com/tutorial/body/">FastAPI — Request Body</a>: 모델 기반 JSON 본문 처리.</li>
+<li><a href="https://fastapi.tiangolo.com/tutorial/response-model/">FastAPI — Response Model</a>: 응답 검증·문서화·필드 제한.</li>
+<li><a href="https://fastapi.tiangolo.com/tutorial/handling-errors/">FastAPI — Handling Errors</a>: HTTPException과 오류 응답.</li>
+<li><a href="https://fastapi.tiangolo.com/tutorial/testing/">FastAPI — Testing</a>: TestClient와 pytest의 기본 사용.</li>
+</ul>
+<p><strong>시각 자료 출처:</strong> 직접 제작한 도식 6개, 내장 이미지 생성 도구로 제작한 전체 아키텍처 1장과 카툰 시트 3장, 기존 로컬 교안 이미지 2개를 사용했습니다. 생성 프롬프트는 함께 저장한 <code>이미지_생성기록.json</code>에 있습니다. 동시성 시간은 설명용 가정이며 실제 측정 데이터가 아닙니다. 기존 이미지는 수업 자료에서 가져온 것으로 원저작자·외부 재배포 권한은 별도로 확인하지 않았습니다.</p>
+</body></html>
