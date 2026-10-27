@@ -1,0 +1,38 @@
+{
+  "objective": "PR 만들기: 변경 범위와 테스트 근거를 함께 제출",
+  "files": {
+    "VERIFICATION.md": {
+      "purpose": "실제 검사·범위 감사 기록",
+      "execution": "검증 완료 후 강사가 읽음"
+    },
+    "CODEX_PROMPTS.md": {
+      "purpose": "분석 수정 검토 프롬프트",
+      "execution": "강사 또는 학생이 필요할 때 읽음"
+    },
+    "solution.py": {
+      "purpose": "원인에 대한 강사용 최소 수정 코드",
+      "execution": "python check.py solution"
+    },
+    "CODE_GUIDE.md": {
+      "purpose": "실제 전체 코드 해설",
+      "execution": "강사 또는 학생이 필요할 때 읽음"
+    },
+    "main.py": {
+      "purpose": "현재 차시 결함의 학생 재현 코드",
+      "execution": "python check.py main"
+    },
+    "README.md": {
+      "purpose": "현재 차시 수업 및 실행 명령",
+      "execution": "강사 또는 학생이 필요할 때 읽음"
+    },
+    "check.py": {
+      "purpose": "현재 차시의 실제 입력 및 결과 검사",
+      "execution": "python check.py main 및 python check.py solution"
+    },
+    "TEACHER.md": {
+      "purpose": "교사용 답과 평가",
+      "execution": "강사 또는 학생이 필요할 때 읽음"
+    }
+  },
+  "routes": []
+}

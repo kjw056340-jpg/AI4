@@ -1,0 +1,91 @@
+{
+  "objective": "GET/POST 통합 API에서 공유 목록과 ID 중복을 재현하고 최소 수정으로 검증한다.",
+  "files": {
+    "main.py": {
+      "purpose": "조회/등록 및 중복 ID 문제의 학생 시작 코드",
+      "execution": "uvicorn main:app 또는 python check.py main"
+    },
+    "solution.py": {
+      "purpose": "해당 문제의 최소 수정 강사용 코드",
+      "execution": "uvicorn solution:app 또는 python check.py solution"
+    },
+    "check.py": {
+      "purpose": "GET/POST 실제 요청 재현과 실패/수정 후 검사",
+      "execution": "python check.py main 및 python check.py solution"
+    },
+    "requirements.txt": {
+      "purpose": "필요한 3개 직접 패키지 설치",
+      "execution": "python -m pip install -r requirements.txt"
+    },
+    "README.md": {
+      "purpose": "1차시 시간표와 명령 및 실행 안내",
+      "execution": "학생 수업 시작 전 읽음"
+    },
+    "CODE_GUIDE.md": {
+      "purpose": "현재 사용 코드와 호출 흐름 설명",
+      "execution": "학생 코드 이해 시 읽음"
+    },
+    "CODEX_PROMPTS.md": {
+      "purpose": "재현 기반 Codex 단계별 프롬프트",
+      "execution": "Codex 실습 단계마다 읽고 사용"
+    },
+    "TEACHER.md": {
+      "purpose": "교사용 답과 평가",
+      "execution": "강사 수업 중 참고"
+    },
+    "VERIFICATION.md": {
+      "purpose": "실제 실행 확인 결과",
+      "execution": "강사 검수 단계에서 읽음"
+    }
+  },
+  "routes": [
+    {
+      "file": "main.py",
+      "method": "GET",
+      "path": "/tasks",
+      "purpose": "조회 결과 확인",
+      "evidence": [
+        {
+          "file": "check.py",
+          "quote": "client.get(\"/tasks\")"
+        }
+      ]
+    },
+    {
+      "file": "main.py",
+      "method": "POST",
+      "path": "/tasks",
+      "purpose": "신규 항목 등록과 고유 ID 확인",
+      "evidence": [
+        {
+          "file": "check.py",
+          "quote": "client.post(\"/tasks\", json={\"title\": \"PR 준비\"})"
+        }
+      ]
+    },
+    {
+      "file": "solution.py",
+      "method": "GET",
+      "path": "/tasks",
+      "purpose": "조회 결과 확인",
+      "evidence": [
+        {
+          "file": "check.py",
+          "quote": "client.get(\"/tasks\")"
+        }
+      ]
+    },
+    {
+      "file": "solution.py",
+      "method": "POST",
+      "path": "/tasks",
+      "purpose": "신규 항목 등록과 고유 ID 확인",
+      "evidence": [
+        {
+          "file": "check.py",
+          "quote": "client.post(\"/tasks\", json={\"title\": \"PR 준비\"})"
+        }
+      ]
+    }
+  ]
+}
