@@ -1,0 +1,38 @@
+{
+  "objective": "대화 이력 저장 모듈과 정상·실패 회귀 검사",
+  "files": {
+    "README.md": {
+      "purpose": "개념·파일·실행·오류 분석·재검증 안내",
+      "execution": "실행 준비부터 제출까지 읽고 적용"
+    },
+    "main.py": {
+      "purpose": "현재 차시의 정상·의도한 오류 실제 실행",
+      "execution": "python main.py 및 python check.py main"
+    },
+    "solution.py": {
+      "purpose": "같은 목표의 최소 수정 결과 비교",
+      "execution": "python solution.py 및 python check.py solution"
+    },
+    "check.py": {
+      "purpose": "현재 목표의 10개 정상·오류 계약 검사",
+      "execution": "python check.py main 또는 python check.py solution"
+    },
+    "CODEX_PROMPTS.md": {
+      "purpose": "실제 증상 기반 분석·최소 수정·검토 활동",
+      "execution": "오류 재현 후 순서대로 적용"
+    },
+    "ANSWERS.md": {
+      "purpose": "원인·최소 수정·질문 답·평가 기준 비교",
+      "execution": "직접 수정 후 자기 점검"
+    },
+    "SOURCES.md": {
+      "purpose": "공식 SQL·sqlite3 동작과 수업 정책 구분",
+      "execution": "개념과 결과를 대조할 때 읽음"
+    },
+    "VERIFICATION.md": {
+      "purpose": "실제 실행 결과·범위 감사·한계 확인",
+      "execution": "검증 출력과 비교"
+    }
+  },
+  "routes": []
+}

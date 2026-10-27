@@ -1,0 +1,38 @@
+{
+  "objective": "SQLite 파일을 만들고 사용자 INSERT 후 저장 확정을 재연결로 검증한다.",
+  "files": {
+    "README.md": {
+      "purpose": "DB 생성·저장·재연결·한 줄 수정 실습 안내",
+      "execution": "준비부터 제출까지 읽고 실행"
+    },
+    "main.py": {
+      "purpose": "실제 파일 저장 누락과 commit 위치 분석",
+      "execution": "python main.py 또는 python check.py main"
+    },
+    "solution.py": {
+      "purpose": "사용자 INSERT 후 commit의 최소 수정 비교",
+      "execution": "python solution.py 또는 python check.py solution"
+    },
+    "check.py": {
+      "purpose": "임시 파일 DB에서 저장·입력 보존·NULL 거절 확인",
+      "execution": "python check.py main 또는 python check.py solution"
+    },
+    "CODEX_PROMPTS.md": {
+      "purpose": "실제 파일·입력·기대값 기반 분석·수정·검토",
+      "execution": "오류 재현 후 세 단계 적용"
+    },
+    "ANSWERS.md": {
+      "purpose": "최소 수정 원리·확인 질문·평가 기준 비교",
+      "execution": "직접 수정 후 비교"
+    },
+    "SOURCES.md": {
+      "purpose": "sqlite3 연결·트랜잭션 공식 동작 확인",
+      "execution": "코드 설명과 실측 결과 대조"
+    },
+    "VERIFICATION.md": {
+      "purpose": "정상·실패·수정 실행 및 범위 감사 결과 확인",
+      "execution": "실습 결과 대조"
+    }
+  },
+  "routes": []
+}

@@ -1,0 +1,38 @@
+{
+  "objective": "여러 사용자를 WHERE·ORDER BY·LIMIT으로 조회하고 0이 기본값으로 덮이는 오류를 수정한다.",
+  "files": {
+    "README.md": {
+      "purpose": "조건 조회·정렬·상한·0 오류 실습 안내",
+      "execution": "준비부터 재검사까지 순서대로 읽고 실행"
+    },
+    "main.py": {
+      "purpose": "여러 사용자 저장과 SQL 인자 변형 오류 재현",
+      "execution": "python main.py 또는 python check.py main"
+    },
+    "solution.py": {
+      "purpose": "0을 보존하는 최소 수정 비교",
+      "execution": "python solution.py 또는 python check.py solution"
+    },
+    "check.py": {
+      "purpose": "정상·경계·오류·재실행 조건 10개 검증",
+      "execution": "python check.py main 또는 python check.py solution"
+    },
+    "CODEX_PROMPTS.md": {
+      "purpose": "SQL 앞의 보조 함수 원인 분석·수정·검토",
+      "execution": "오류 재현 후 순서대로 적용"
+    },
+    "ANSWERS.md": {
+      "purpose": "한 줄 수정·오개념·확인 답·평가 기준 비교",
+      "execution": "직접 수정 후 읽음"
+    },
+    "SOURCES.md": {
+      "purpose": "SELECT·LIMIT·자리표시자 공식 근거 확인",
+      "execution": "개념·실제 결과 대조"
+    },
+    "VERIFICATION.md": {
+      "purpose": "실행 검증·범위 감사·환경 한계 확인",
+      "execution": "검사 결과를 대조할 때 읽음"
+    }
+  },
+  "routes": []
+}

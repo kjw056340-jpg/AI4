@@ -1,0 +1,42 @@
+{
+  "objective": "WHERE로 한 행을 수정·삭제하고 중간 실패에서 UPDATE도 rollback되도록 commit 경계를 수정한다.",
+  "files": {
+    "README.md": {
+      "purpose": "조건 수정·삭제·부분 저장 원인·롤백 실습 안내",
+      "execution": "실행 전부터 재검사까지 읽음"
+    },
+    "main.py": {
+      "purpose": "한 묶음 업무의 정상·중간 실패·부분 저장 재현",
+      "execution": "python main.py 및 python check.py main"
+    },
+    "solution.py": {
+      "purpose": "중간 commit 한 줄 제거 비교",
+      "execution": "python check.py solution"
+    },
+    "reproduce.py": {
+      "purpose": "WHERE 없는 두 DML의 영향·rollback 원복 실행",
+      "execution": "python reproduce.py"
+    },
+    "check.py": {
+      "purpose": "정상·대상 누락·SQL 오류·0점·다른 대상 여섯 사례 검증",
+      "execution": "python check.py main 또는 python check.py solution"
+    },
+    "CODEX_PROMPTS.md": {
+      "purpose": "commit 경계 분석·최소 수정·검토 프롬프트",
+      "execution": "중간 실패 재현 후 적용"
+    },
+    "ANSWERS.md": {
+      "purpose": "원리·수정 위치·질문 답·평가 기준 비교",
+      "execution": "직접 수정 후 읽음"
+    },
+    "SOURCES.md": {
+      "purpose": "공식 DML·트랜잭션과 실습 정책 구분",
+      "execution": "개념·실행 결과 대조"
+    },
+    "VERIFICATION.md": {
+      "purpose": "실제 실행 결과·범위 감사·환경 한계",
+      "execution": "검증 결과 비교"
+    }
+  },
+  "routes": []
+}
