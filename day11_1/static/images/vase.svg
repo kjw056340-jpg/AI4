@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 350"><defs>
+<linearGradient id="ceramic"><stop stop-color="#c2a77b"/><stop offset=".42" stop-color="#e0cba5"/><stop offset="1" stop-color="#ba9b70"/></linearGradient>
+<linearGradient id="wood"><stop stop-color="#b98c5d"/><stop offset=".5" stop-color="#ddbd8e"/><stop offset="1" stop-color="#a4794e"/></linearGradient>
+<linearGradient id="linen"><stop stop-color="#c9bfa4"/><stop offset=".5" stop-color="#f2ebd8"/><stop offset="1" stop-color="#cabe9f"/></linearGradient>
+</defs><ellipse cx="200" cy="304" rx="79" ry="12" fill="#615947" opacity=".13"/>
+<path d="M200 166q-8-74 14-134m-12 104q-41-62-55-91m53 64q42-56 67-62" fill="none" stroke="#737e52" stroke-width="3"/>
+<path d="M213 66q-37-4-22-34 28 0 22 34m-9 35q30-25 40-6-9 22-40 6m-45-29q-29 1-25-28 26-2 25 28m77-1q-3-33 28-27 9 25-28 27" fill="#8a9669"/>
+<path d="M172 135h56l-5 30q58 35 45 101-8 37-68 37t-68-37q-13-66 45-101z" fill="url(#ceramic)"/>
+<ellipse cx="200" cy="135" rx="28" ry="7" fill="#ab8e66"/>
+<path d="M177 186q-30 23-23 65" fill="none" stroke="#fff" stroke-width="8" opacity=".17"/></svg>

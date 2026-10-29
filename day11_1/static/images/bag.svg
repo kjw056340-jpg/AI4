@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 350"><defs>
+<linearGradient id="ceramic"><stop stop-color="#c2a77b"/><stop offset=".42" stop-color="#e0cba5"/><stop offset="1" stop-color="#ba9b70"/></linearGradient>
+<linearGradient id="wood"><stop stop-color="#b98c5d"/><stop offset=".5" stop-color="#ddbd8e"/><stop offset="1" stop-color="#a4794e"/></linearGradient>
+<linearGradient id="linen"><stop stop-color="#c9bfa4"/><stop offset=".5" stop-color="#f2ebd8"/><stop offset="1" stop-color="#cabe9f"/></linearGradient>
+</defs><ellipse cx="200" cy="302" rx="92" ry="12" fill="#615947" opacity=".13"/>
+<path d="M148 129V94q0-49 50-49t50 49v35" stroke="#bdaf8e" stroke-width="16" fill="none"/>
+<path d="M114 118h172l12 159q-84 31-195 0z" fill="url(#linen)"/>
+<path d="M123 130h153l10 138q-85 19-171 0z" stroke="#beb49a" fill="none" stroke-width="2" stroke-dasharray="3 4"/>
+<path d="M150 120v39m98-39v39" stroke="#c1b395" stroke-width="13"/>
+<text x="200" y="225" text-anchor="middle" font-family="Georgia,serif" font-size="28" fill="#75785f" letter-spacing="2">ondo</text></svg>

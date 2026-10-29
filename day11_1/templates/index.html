@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="일상에 따뜻함을 더하는 라이프스타일 편집숍, 온도.">
+  <title>온도 · 일상의 좋은 온도</title>
+  <link rel="icon" href="/static/images/mug.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <script src="/static/js/app.js" defer></script>
+</head>
+<body data-page="{{ page }}">
+  <a class="skip" href="#main">본문 바로가기</a>
+  <div class="announcement">일상의 작은 변화, 온도에서 시작하세요 <span>모든 주문 무료배송</span></div>
+  <header class="site-header">
+    <a class="logo" href="/products" aria-label="온도 홈">ondo<span>온도</span></a>
+    <nav class="nav" aria-label="주요 메뉴">
+      <a href="/products" class="shop-link">Shop</a>
+      <a href="/orders">구매내역</a>
+      <a href="/cart" aria-label="장바구니" class="cart-link">장바구니 <span id="cart-count">0</span></a>
+      <a href="/login" id="account-link">로그인</a>
+      <button id="logout" class="text-button" hidden>로그아웃</button>
+    </nav>
+  </header>
+  <main id="main" tabindex="-1"><div class="loading" role="status">공간을 준비하고 있어요…</div></main>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <footer class="site-footer">
+    <div><a href="/products" class="logo">ondo<span>온도</span></a><p>취향이 머무는 곳, 일상의 좋은 온도.</p></div>
+    <div><p>학습용 쇼핑몰 · 모의 결제만 제공됩니다.</p><p>실제 상품 배송 및 금전 거래는 이루어지지 않습니다.</p><small>© 2026 ONDO. Made for everyday moments.</small></div>
+  </footer>
+</body>
+</html>
