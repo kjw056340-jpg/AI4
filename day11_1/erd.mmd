@@ -1,0 +1,42 @@
+erDiagram
+    users ||--o{ orders : "회원의 장바구니와 주문"
+    orders ||--o{ order_items : "주문에 담긴 상품"
+    products ||--o{ order_items : "상품별 구매 수량"
+    orders ||--o| payments : "주문별 성공 결제"
+    users ||--o{ payments : "회원의 결제"
+
+    users {
+        uuid id PK
+        text email UK
+        text password_hash
+        text name
+        text phone
+        text address
+    }
+    products {
+        uuid id PK
+        text name
+        bigint price
+        integer stock
+    }
+    orders {
+        uuid id PK
+        uuid user_id FK
+        text status
+        bigint total_amount
+    }
+    order_items {
+        uuid id PK
+        uuid order_id FK
+        uuid product_id FK
+        text product_name
+        bigint unit_price
+        integer quantity
+    }
+    payments {
+        uuid id PK
+        uuid order_id FK,UK
+        uuid user_id FK
+        bigint amount
+        text status
+    }

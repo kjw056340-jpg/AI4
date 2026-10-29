@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 350"><defs>
+<linearGradient id="ceramic"><stop stop-color="#c2a77b"/><stop offset=".42" stop-color="#e0cba5"/><stop offset="1" stop-color="#ba9b70"/></linearGradient>
+<linearGradient id="wood"><stop stop-color="#b98c5d"/><stop offset=".5" stop-color="#ddbd8e"/><stop offset="1" stop-color="#a4794e"/></linearGradient>
+<linearGradient id="linen"><stop stop-color="#c9bfa4"/><stop offset=".5" stop-color="#f2ebd8"/><stop offset="1" stop-color="#cabe9f"/></linearGradient>
+</defs><ellipse cx="204" cy="308" rx="99" ry="12" fill="#615947" opacity=".13"/>
+<path d="M132 155l-9 145m38-103l7 106m82-107l-3 106m25-147l17 147" stroke="url(#wood)" stroke-width="13" stroke-linecap="round"/>
+<path d="M131 83q69-27 142 0l-5 88q-68 15-134 0z" fill="url(#wood)"/>
+<path d="M142 98q56-14 117 0m-114 17q56-14 111 0" stroke="#b68b5e" stroke-width="2" fill="none" opacity=".7"/>
+<path d="M128 184q70-16 148 0l20 32q-88 27-188 0z" fill="#a77b4f"/>
+<path d="M128 177q70-16 148 0l20 31q-88 27-188 0z" fill="url(#wood)"/></svg>

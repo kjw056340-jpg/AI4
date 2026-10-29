@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 350"><defs>
+<linearGradient id="ceramic"><stop stop-color="#c2a77b"/><stop offset=".42" stop-color="#e0cba5"/><stop offset="1" stop-color="#ba9b70"/></linearGradient>
+<linearGradient id="wood"><stop stop-color="#b98c5d"/><stop offset=".5" stop-color="#ddbd8e"/><stop offset="1" stop-color="#a4794e"/></linearGradient>
+<linearGradient id="linen"><stop stop-color="#c9bfa4"/><stop offset=".5" stop-color="#f2ebd8"/><stop offset="1" stop-color="#cabe9f"/></linearGradient>
+</defs><ellipse cx="201" cy="302" rx="103" ry="12" fill="#615947" opacity=".1"/>
+<circle cx="200" cy="173" r="112" fill="url(#wood)"/><circle cx="200" cy="173" r="102" fill="#f3efe3"/>
+<path d="M200 83v12m90 78h-12m-78 90v-12m-90-78h12" stroke="#8a826b" stroke-width="3"/>
+<path d="M200 114v59l43 28" stroke="#4b5547" stroke-width="5" fill="none" stroke-linecap="round"/>
+<circle cx="200" cy="173" r="6" fill="#a47d52"/>
+<path d="M153 94l5 9m89-9l-5 9m-122 25l9 5m142-5l9-5m-9 94l9 5m-151-5l-9 5m38 21l-5 9m89-9l5 9" stroke="#c2bca7" stroke-width="2"/></svg>

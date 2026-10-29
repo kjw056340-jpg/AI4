@@ -1,0 +1,4 @@
+-r requirements.txt
+pytest>=8.3,<10.0
+psycopg[binary]>=3.2,<4.0
+pglast>=7,<8
