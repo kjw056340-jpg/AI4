@@ -30,12 +30,14 @@ GitHub 저장소를 만들고 이 프로젝트의 소스를 업로드합니다. 
 | Name | 원하는 서비스명, 예: `ondo-shop` |
 | Language / Runtime | Python 3 |
 | Branch | 배포할 소스가 있는 브랜치 |
-| Root Directory | requirements.txt가 저장소 최상위에 있으면 비워 둠. 하위 폴더에 있으면 그 폴더 경로 입력 |
+| Root Directory | 현재 저장소 구조에서는 `day11_1` |
 | Build Command | `pip install -r requirements.txt` |
 | Start Command | `uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 1 --no-proxy-headers` |
 | Health Check Path | `/health` |
 
 `$PORT`는 Render에서 설정하는 서버 포트이므로 그대로 입력합니다. 로컬 미리보기용 `tests.preview:preview`가 아닌 **app.main:app**으로 실행해야 합니다. 로그인 요청 제한기가 단일 프로세스 기준이므로 worker는 1개로 유지합니다. [Render FastAPI 공식 안내](https://render.com/docs/deploy-fastapi)
+
+현재 Git 저장소 루트는 `dev`이고 쇼핑몰 소스는 그 아래 `day11_1/`에 있습니다. 따라서 Root Directory를 비워 두면 `requirements.txt`를 찾지 못합니다. `render.yaml`에도 `rootDir: day11_1`을 반영했습니다. 나중에 쇼핑몰 폴더만 별도 저장소로 분리하면 Root Directory와 rootDir 설정을 그 구조에 맞게 변경해야 합니다. [Render 하위 폴더 설정](https://render.com/docs/monorepo-support)
 
 ## 4. 환경변수 설정
 
@@ -76,6 +78,7 @@ JWT 비밀키는 로컬 프로젝트 터미널에서 다음과 같이 생성할 
 | 증상 | 확인할 내용 |
 | --- | --- |
 | `Could not import module app.main` | Root Directory 아래에 app/main.py가 있는지 확인 |
+| requirements.txt를 찾을 수 없음 | Settings → Build & Deploy → Root Directory를 `day11_1`로 설정 |
 | 필수 설정 누락으로 서버 시작 실패 | SUPABASE_URL, SUPABASE_KEY, JWT_SECRET 확인 |
 | 상품 조회·회원가입에서 DB 오류 | SQL 적용 여부, 프로젝트 URL, 서버 키, Supabase 프로젝트 상태 확인 |
 | 로그인·주문 요청에서 보안 확인 실패 | 브라우저 접속 주소와 APP_ORIGIN 일치 여부, 환경변수 적용 후 재배포 여부 확인 |
