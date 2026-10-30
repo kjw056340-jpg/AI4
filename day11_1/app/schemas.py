@@ -88,3 +88,13 @@ class Checkout(Schema):
 class Payment(Schema):
     order_id: UUID
     idempotency_key: UUID
+
+
+class ProductWrite(Schema):
+    name: str = Field(min_length=1, max_length=120)
+    description: str = Field(min_length=1, max_length=10000)
+    category: str = Field(min_length=1, max_length=30)
+    price: int = Field(ge=1, le=100000000, strict=True)
+    stock: int = Field(ge=0, le=2147483647, strict=True)
+    image_key: Literal['mug', 'lamp', 'chair', 'bag', 'clock', 'vase'] = 'mug'
+    is_active: bool = True

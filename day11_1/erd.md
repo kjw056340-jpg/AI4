@@ -2,7 +2,7 @@
 
 회원가입부터 구매내역 확인까지 필요한 **테이블 5개**로 구성합니다. 장바구니 전용 테이블은 만들지 않고 `orders.status`로 장바구니와 주문을 구분합니다.
 
-이 그림은 구매 흐름을 이해하는 데 필요한 핵심 컬럼만 표시합니다. 실제 SQL에 있는 화면 표시·보안·관리용 컬럼까지 포함한 정의는 [테이블 정의서](table-definition.md)에 정리했습니다. 이번 정리는 문서 변경이며 기존 SQL과 소스코드는 변경하지 않습니다.
+이 그림은 구매 흐름을 이해하는 데 필요한 핵심 컬럼만 표시합니다. 실제 SQL에 있는 화면 표시·보안·관리용 컬럼까지 포함한 정의는 [테이블 정의서](table-definition.md)에 정리했습니다. 인증은 별도 Supabase `auth.users`가 담당하며 `users.auth_user_id`로 연결합니다. [Auth 전환 안내](docs/07_supabase_auth_local_test.md)를 참고하세요.
 
 ## 관계도
 
@@ -19,7 +19,8 @@ erDiagram
     users {
         uuid id PK
         text email UK
-        text password_hash
+        uuid auth_user_id FK
+        text role
         text name
         text phone
         text address

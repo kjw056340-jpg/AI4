@@ -8,7 +8,7 @@ from pglast import parse_sql, parse_plpgsql
 
 from app.config import Settings
 from app.db import Database
-from app.security import COOKIE_NAME, hash_password, safe_next, verify_password
+from app.security import COOKIE_NAME, safe_next
 from tests.conftest import PRODUCT_ID
 
 
@@ -70,14 +70,15 @@ def test_csrf_local_alias_still_requires_token(client, headers, monkeypatch):
     assert response.status_code == 403
 
 
-def test_signup_hash_cookie_and_duplicate(client, headers, signed_in, db):
-    assert db.users[0]['password_hash'].startswith('$2')
-    assert db.users[0]['password_hash'] != 'correct-pass123'
+def test_signup_auth_cookie_and_duplicate(client, headers, signed_in, db):
+    assert 'password_hash' not in db.users[0]
+    assert 'password' not in db.users[0]
+    assert db.users[0]['auth_user_id']
     assert 'password_hash' not in client.get('/api/me').text
     response = client.post('/api/auth/login', headers=headers, json={'email': 'MEMBER@example.com','password': 'correct-pass123'})
     cookie = response.headers['set-cookie'].lower()
     assert 'httponly' in cookie and 'samesite=lax' in cookie
-    assert client.post('/api/auth/register', headers=headers, json={'email':'member@example.com','password':'correct-pass123','name':'다른 이름'}).status_code == 409
+    assert client.post('/api/auth/register', headers=headers, json={'email':'member@example.com','password':'correct-pass123','name':'다른 이름'}).status_code == 400
 
 
 def test_login_next_logout_revocation(client, headers, signed_in):
@@ -100,7 +101,7 @@ def test_wrong_password_and_generic_login_error(client, headers, signed_in):
     for email in ['member@example.com', 'missing@example.com']:
         response=client.post('/api/auth/login',headers=headers,json={'email':email,'password':'wrong12345'})
         assert response.status_code == 401
-        assert response.json()['detail'] == '이메일 또는 비밀번호를 확인해 주세요.'
+        assert response.json()['detail'] == '이메일 또는 비밀번호를 확인하거나 다시 로그인해 주세요.'
 
 
 def test_password_change_revokes_old_token(client, headers, signed_in):
@@ -114,7 +115,7 @@ def test_password_change_revokes_old_token(client, headers, signed_in):
 
 
 def test_delete_requires_password_and_revokes(client,headers,signed_in):
-    assert client.request('DELETE','/api/me',headers=headers,json={'password':'wrong'}).status_code == 400
+    assert client.request('DELETE','/api/me',headers=headers,json={'password':'wrong'}).status_code == 401
     old=client.cookies[COOKIE_NAME]
     assert client.request('DELETE','/api/me',headers=headers,json={'password':'correct-pass123'}).status_code == 200
     client.cookies.set(COOKIE_NAME,old)
@@ -146,7 +147,6 @@ def test_password_policy_and_redacted_errors(client,headers):
     response=client.post('/api/auth/register',headers=headers,json={'email':'test@example.com','password':secret,'name':'이름'})
     assert response.status_code == 422
     assert secret not in response.text
-    assert verify_password('wrong',hash_password('correct12345')) is False
 
 
 def test_rate_limit(client,headers):

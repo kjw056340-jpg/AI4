@@ -13,7 +13,6 @@ os.environ.setdefault('APP_ORIGIN', 'http://testserver')
 os.environ.setdefault('COOKIE_SECURE', 'false')
 
 from app.main import app, limiter
-from app.security import hash_password
 
 PRODUCT_ID = '10000000-0000-4000-8000-000000000001'
 
@@ -68,6 +67,65 @@ class FakeDB:
         return {'action': action, 'data': data}
 
 
+class FakeAuth:
+    """Independent Auth boundary; application profiles never hold credentials."""
+    def __init__(self, db):
+        self.db = db
+        self.accounts = {}
+        self.sessions = {}
+        self.refresh_tokens = {}
+        self.confirmation_required = False
+
+    def close(self):
+        pass
+
+    def issue(self, identity):
+        access, refresh = str(uuid4()), str(uuid4())
+        self.sessions[access] = identity
+        self.refresh_tokens[refresh] = identity
+        return {'access_token': access, 'refresh_token': refresh, 'user': {'id': identity}, 'expires_in': 3600}
+
+    def signup(self, data):
+        email = data['email']
+        if email in self.accounts:
+            raise HTTPException(400, '가입하지 못했습니다.')
+        identity = str(uuid4())
+        self.accounts[email] = {'id': identity, 'password': data['password']}
+        self.db.users.append({**data['data'], 'id': str(uuid4()), 'auth_user_id': identity,
+            'email': email, 'token_version': 0, 'is_active': True, 'role': 'member',
+            'created_at': '2026-10-30T00:00:00Z'})
+        return {'user': {'id': identity}} if self.confirmation_required else self.issue(identity)
+
+    def login(self, email, password):
+        account = self.accounts.get(email)
+        if not account or account['password'] != password:
+            raise HTTPException(401, '이메일 또는 비밀번호를 확인하거나 다시 로그인해 주세요.')
+        return self.issue(account['id'])
+
+    def user(self, token):
+        if token not in self.sessions:
+            raise HTTPException(401, '로그인이 필요합니다.')
+        return {'id': self.sessions[token]}
+
+    def refresh(self, token):
+        if token not in self.refresh_tokens:
+            raise HTTPException(401, '로그인이 필요합니다.')
+        return self.issue(self.refresh_tokens.pop(token))
+
+    def logout(self, token):
+        uid = self.user(token)['id']
+        self.refresh_tokens = {t: u for t, u in self.refresh_tokens.items() if u != uid}
+        # Real Supabase access JWTs may survive until expiry. Shop version must revoke them.
+
+    def password(self, token, password):
+        uid = self.user(token)['id']
+        next(a for a in self.accounts.values() if a['id'] == uid)['password'] = password
+
+    def delete_user(self, identity):
+        self.accounts = {e: a for e, a in self.accounts.items() if a['id'] != identity}
+        self.sessions = {t: u for t, u in self.sessions.items() if u != identity}
+
+
 @pytest.fixture
 def db():
     return FakeDB()
@@ -81,6 +139,8 @@ def client(db):
     with TestClient(app, base_url='http://testserver') as client:
         app.state.db.close()
         app.state.db = db
+        app.state.auth.close()
+        app.state.auth = FakeAuth(db)
         yield client
 
 

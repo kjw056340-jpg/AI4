@@ -1,18 +1,20 @@
 # 테이블 정의서
 
-이 문서는 현재 [CREATE TABLE SQL](sql/001_schema.sql)과 일치하는 전체 컬럼 정의입니다. 먼저 [최소 ERD](erd.md)로 관계를 보고, 필요한 컬럼만 이 문서에서 확인하면 됩니다.
+이 문서는 [CREATE TABLE SQL](sql/001_schema.sql)에 [Supabase Auth 변경](sql/004_supabase_auth.sql)을 적용한 컬럼 정의입니다. 먼저 [최소 ERD](erd.md)로 관계를 보고, 필요한 컬럼만 이 문서에서 확인하면 됩니다.
 
 모든 금액은 **원(KRW) 단위의 정수**입니다. PK는 자동 생성 UUID입니다. 아래에서 `필수`는 SQL의 `NOT NULL`을 뜻하며, 기본값이 있으면 INSERT 시 생략할 수 있습니다. `text`의 글자 수 제한은 별도의 CHECK가 있는 경우만 DB가 직접 보장합니다.
 
 ## 1. users — 회원
 
-로그인 정보와 기본 배송정보를 저장합니다. 비밀번호 원문은 저장하지 않습니다.
+프로필·권한·기본 배송정보를 저장합니다. 인증과 비밀번호는 Supabase의 `auth.users`가 담당하며 `auth_user_id`로 연결합니다.
 
 | 컬럼 | 자료형 | 필수 | 설명·제약 |
 | --- | --- | --- | --- |
 | `id` | uuid | O | PK, 자동 생성 |
 | `email` | text | O | 로그인 이메일, UNIQUE, 소문자, 254자 이하 |
-| `password_hash` | text | O | bcrypt 비밀번호 해시 |
+| `auth_user_id` | uuid | - | UNIQUE, auth.users(id) FK. 기존 회원은 확인 후 연결 |
+| `role` | text | O | member/admin, 기본 member. 서버에서만 변경 |
+| `password_hash` | text | - | 이전 인증의 잔여 컬럼. 앱에서 사용하지 않으며 회원 연결 확인 후 NULL로 정리 |
 | `name` | text | O | 이름, 1~60자 |
 | `phone` | text | O | 기본 연락처, 기본값 `''`, 30자 이하 |
 | `address` | text | O | 기본 주소, 기본값 `''`, 300자 이하 |

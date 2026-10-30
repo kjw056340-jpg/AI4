@@ -4,6 +4,8 @@
 
 ## 실제 쇼핑몰 실행
 
+**Supabase Auth 전환 후에는 [배포 전 로컬 테스트 안내](docs/07_supabase_auth_local_test.md)에 따라 `sql/004_supabase_auth.sql` 적용과 기존 회원 계정 연결을 먼저 진행하세요.** 로그인·로그아웃·토큰 갱신은 Supabase Auth를 사용하며, 일반 회원과 관리자의 권한을 구분합니다. 실행 명령·자동 테스트·실제 계정 검증·피드백 양식은 해당 문서에 정리했습니다.
+
 Supabase 연결값을 `.env`에 설정한 후 프로젝트 터미널에서 실행합니다.
 
 ```powershell

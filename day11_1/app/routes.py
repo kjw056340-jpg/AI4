@@ -2,13 +2,12 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 
-from app.schemas import CartItem, Checkout, DeleteAccount, Login, Payment, Profile, Quantity, Register
-from app.security import (clear_auth, csrf_token, current_user, get_db, hash_password,
-                          public_user, safe_next, set_auth, verify_password)
+from app.schemas import CartItem, Checkout, DeleteAccount, Login, Payment, Profile, Quantity, Register, ProductWrite
+from app.security import (clear_auth, csrf_token, current_user, get_db, get_auth, admin_user,
+                          public_user, safe_next, set_auth, auth_profile,
+                          SUPABASE_COOKIE, refresh_session)
 
 router = APIRouter(prefix='/api')
-# 없는 계정도 같은 비용으로 bcrypt를 검사해 계정 존재 여부의 시간차를 줄입니다.
-DUMMY_HASH = hash_password('dummy-password-12345')
 ORDER_SELECT = '*,items:order_items(*,product:products(id,name,price,stock,image_key,is_active)),payment:payments(*)'
 
 
@@ -18,31 +17,39 @@ def csrf(request: Request, response: Response):
 
 
 @router.post('/auth/register', status_code=201, tags=['인증'])
-def register(body: Register, response: Response, db=Depends(get_db)):
+def register(body: Register, response: Response, db=Depends(get_db), auth=Depends(get_auth)):
     data = body.model_dump(exclude={'password'})
     data['email'] = str(body.email).lower()
-    data['password_hash'] = hash_password(body.password)
-    user = db.request('POST', 'users', data=data)[0]
-    set_auth(response, user)
+    session = auth.signup({'email': data.pop('email'), 'password': body.password, 'data': data})
+    if not session.get('access_token'):
+        return {'user': None, 'confirmation_required': True,
+                'message': '이메일의 인증 링크를 누른 후 로그인해 주세요.'}
+    user = auth_profile(session['user'], db)
+    set_auth(response, user, session)
     return {'user': public_user(user)}
 
 
 @router.post('/auth/login', tags=['인증'])
-def login(body: Login, response: Response, next: str = '/products', db=Depends(get_db)):
-    users = db.select('users', select='*', email=f'eq.{str(body.email).lower()}', is_active='eq.true', limit='1')
-    user = users[0] if users else None
-    valid = verify_password(body.password, user['password_hash'] if user else DUMMY_HASH)
-    if not user or not valid:
-        raise HTTPException(401, '이메일 또는 비밀번호를 확인해 주세요.')
-    set_auth(response, user)
+def login(body: Login, response: Response, next: str = '/products', db=Depends(get_db), auth=Depends(get_auth)):
+    session = auth.login(str(body.email).lower(), body.password)
+    user = auth_profile(session['user'], db)
+    set_auth(response, user, session)
     return {'user': public_user(user), 'next': safe_next(next)}
 
 
 @router.post('/auth/logout', tags=['인증'])
-def logout(response: Response, user=Depends(current_user), db=Depends(get_db)):
+def logout(request: Request, response: Response, user=Depends(current_user), db=Depends(get_db), auth=Depends(get_auth)):
+    auth.logout(request.cookies[SUPABASE_COOKIE])
     db.mutate(user, 'logout')
     clear_auth(response)
     return {'message': '로그아웃했습니다.'}
+
+
+@router.post('/auth/refresh', tags=['인증'])
+def refresh(request: Request, response: Response, db=Depends(get_db), auth=Depends(get_auth)):
+    user, session = refresh_session(request, db, auth)
+    set_auth(response, user, session)
+    return {'user': public_user(user)}
 
 
 @router.get('/me', tags=['회원'])
@@ -51,25 +58,52 @@ def me(user=Depends(current_user)):
 
 
 @router.patch('/me', tags=['회원'])
-def profile(body: Profile, response: Response, user=Depends(current_user), db=Depends(get_db)):
+def profile(body: Profile, request: Request, response: Response, user=Depends(current_user), db=Depends(get_db), auth=Depends(get_auth)):
     data = body.model_dump(exclude={'current_password', 'new_password'})
     if body.new_password is not None:
-        if not verify_password(body.current_password, user['password_hash']):
-            raise HTTPException(400, '현재 비밀번호가 일치하지 않습니다.')
-        data['password_hash'] = hash_password(body.new_password)
+        verified = auth.login(user['email'], body.current_password)
+        auth.password(verified['access_token'], body.new_password)
+        auth.logout(verified['access_token'])
+        db.mutate(user, 'logout')
+        user = {**user, 'token_version': user['token_version'] + 1}
     updated = db.mutate(user, 'profile', data)
     if body.new_password is not None:
-        set_auth(response, updated)
+        session = auth.login(user['email'], body.new_password)
+        set_auth(response, updated, session)
     return public_user(updated)
 
 
 @router.delete('/me', tags=['회원'])
-def delete_account(body: DeleteAccount, response: Response, user=Depends(current_user), db=Depends(get_db)):
-    if not verify_password(body.password, user['password_hash']):
-        raise HTTPException(400, '비밀번호가 일치하지 않습니다.')
+def delete_account(body: DeleteAccount, response: Response, user=Depends(current_user), db=Depends(get_db), auth=Depends(get_auth)):
+    verified = auth.login(user['email'], body.password)
+    auth.logout(verified['access_token'])
     db.mutate(user, 'delete_account')
+    try:
+        auth.delete_user(user['auth_user_id'])
+    except HTTPException:
+        raise HTTPException(503, '쇼핑몰 계정은 비활성화되었습니다. 인증 계정 정리를 관리자에게 요청해 주세요.') from None
     clear_auth(response)
     return {'message': '탈퇴가 완료되었습니다. 개인정보는 익명화되었습니다.'}
+
+
+@router.post('/admin/products', status_code=201, tags=['관리자'])
+def create_product(body: ProductWrite, user=Depends(admin_user), db=Depends(get_db)):
+    return db.request('POST', 'products', data=body.model_dump())[0]
+
+
+@router.put('/admin/products/{product_id}', tags=['관리자'])
+def update_product(product_id: UUID, body: ProductWrite, user=Depends(admin_user), db=Depends(get_db)):
+    rows = db.request('PATCH', 'products', params={'id': f'eq.{product_id}'}, data=body.model_dump())
+    if not rows:
+        raise HTTPException(404, '상품을 찾을 수 없습니다.')
+    return rows[0]
+
+
+@router.get('/admin/orders', tags=['관리자'])
+def admin_orders(page: int = Query(1, ge=1, le=10000), user=Depends(admin_user), db=Depends(get_db)):
+    rows = db.select('orders', select=ORDER_SELECT, status='neq.CART', order='created_at.desc',
+                     limit='11', offset=str((page - 1) * 10))
+    return {'items': rows[:10], 'page': page, 'has_more': len(rows) > 10}
 
 
 @router.get('/products', tags=['상품'])

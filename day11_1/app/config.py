@@ -12,7 +12,6 @@ class Settings(BaseSettings):
     jwt_secret: str = Field(min_length=32)
     app_origin: str = 'http://127.0.0.1:8000'
     cookie_secure: bool = False
-    access_token_minutes: int = Field(default=120, ge=5, le=1440)
 
     @field_validator('supabase_url')
     @classmethod

@@ -5,6 +5,7 @@ const params = new URLSearchParams(location.search);
 const page = document.body.dataset.page;
 let user = null;
 let csrf = '';
+let refreshPromise = null;
 let toastTimer;
 const won = amount => `${Number(amount).toLocaleString('ko-KR')}원`;
 const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -19,7 +20,7 @@ function displayError(error, target = $('#form-error')) {
   if (target) { target.textContent = error.message; target.hidden = false; target.setAttribute('role', 'alert'); }
   else toast(error.message);
 }
-async function api(path, {method = 'GET', data, redirect = true} = {}) {
+async function api(path, {method = 'GET', data, redirect = true, retry = true} = {}) {
   if (method !== 'GET' && !csrf) csrf = (await api('/csrf', {redirect:false})).csrf_token;
   const response = await fetch('/api' + path, {
     method, credentials:'same-origin',
@@ -27,6 +28,16 @@ async function api(path, {method = 'GET', data, redirect = true} = {}) {
     ...(data !== undefined ? {body:JSON.stringify(data)} : {})
   });
   const result = await response.json().catch(() => ({}));
+  if (response.status === 401 && retry && (!path.startsWith('/auth/') || path === '/auth/logout')) {
+    if (!refreshPromise) refreshPromise = api('/auth/refresh', {method:'POST',redirect:false,retry:false})
+      .finally(() => { refreshPromise = null; });
+    try { await refreshPromise; }
+    catch (error) {
+      if (redirect) location.assign(loginURL());
+      throw error;
+    }
+    return api(path, {method,data,redirect,retry:false});
+  }
   if (!response.ok) {
     if (response.status === 401 && redirect) { location.assign(loginURL()); throw new Error('로그인이 필요합니다.'); }
     let message = result.detail || '요청을 처리하지 못했습니다.';
@@ -97,10 +108,15 @@ async function authForm(register = false) {
   $('#auth-form').onsubmit = event => { event.preventDefault(); busy($('button[type=submit]',event.currentTarget),async()=>{
     const data = Object.fromEntries(new FormData($('#auth-form')));
     const result = await api('/auth/'+(register?'register':'login')+'?next='+encodeURIComponent(next),{method:'POST',data,redirect:false});
+    if (result.confirmation_required) {
+      sessionStorage.setItem('ondo-flash',result.message);
+      location.assign('/login?next='+encodeURIComponent(next));
+      return;
+    }
     // 회원가입 후에도 서버가 next를 검사하는 로그인 흐름과 동일한 안전한 경로만 허용합니다.
     if(register) {
       const parsed = new URL(next,location.origin);
-      const allowed=['/products','/product','/cart','/checkout','/account','/orders'];
+      const allowed=['/products','/product','/cart','/checkout','/account','/orders','/admin'];
       location.assign(parsed.origin===location.origin&&allowed.includes(parsed.pathname)?parsed.pathname+parsed.search:'/products');
     } else location.assign(result.next);
   }); };
@@ -178,15 +194,29 @@ async function ordersPage() {
     await api('/orders/'+button.dataset.cancel+'/cancel',{method:'POST'});await ordersPage();toast('주문이 취소되었습니다.');
   }));
 }
+async function adminPage() {
+  if (user?.role !== 'admin') throw new Error('관리자 권한이 필요합니다.');
+  const current=Math.max(1,Number(params.get('page'))||1);
+  const result=await api('/admin/orders?page='+current);
+  main.innerHTML=`<div class="container">${heading('쇼핑몰 관리','상품과 전체 주문을 관리하세요.')}<section class="panel"><h2>상품 등록 · 수정</h2><p class="help">수정할 때는 상품 상세 주소의 상품 번호를 입력하고 모든 정보를 작성해 주세요. 판매 여부를 해제하면 목록에서 숨겨집니다.</p><form id="product-form">${field('id','수정할 상품 번호 (신규 등록 시 비움)',{max:36})}${field('name','상품명',{required:true,max:120})}${field('description','상품 설명',{required:true,max:10000})}${field('category','카테고리',{required:true,max:30})}${field('price','가격 (원)',{type:'number',required:true})}${field('stock','재고',{type:'number',required:true})}<div class="field"><label for="image_key">상품 이미지</label><select id="image_key" name="image_key">${['mug','lamp','chair','bag','clock','vase'].map(k=>`<option value="${k}">${k}</option>`).join('')}</select></div><label class="checkline"><input name="is_active" type="checkbox" checked><span>판매 중</span></label>${formError()}<button class="button" type="submit">상품 저장</button></form></section><section><h2>전체 주문</h2>${result.items.map(o=>`<article class="order-card"><p>주문번호: ${escapeHTML(o.id)} · ${escapeHTML(o.status)}</p><p>수령인: ${escapeHTML(o.recipient)} · ${escapeHTML(o.phone)}</p><p>배송지: ${escapeHTML(o.address)}</p>${o.items.map(i=>lineItem(i)).join('')}<strong>${won(o.total_amount)}</strong></article>`).join('') || '<p>주문이 없습니다.</p>'}${pagination(current,result.has_more,n=>'/admin?page='+n)}</section></div>`;
+  $('#product-form').onsubmit=event=>{event.preventDefault();busy($('button[type=submit]',event.currentTarget),async()=>{
+    const data=Object.fromEntries(new FormData(event.currentTarget));
+    const id=data.id.trim();delete data.id;
+    data.price=Number(data.price);data.stock=Number(data.stock);data.is_active=Boolean(data.is_active);
+    const saved=await api('/admin/products'+(id?'/'+encodeURIComponent(id):''),{method:id?'PUT':'POST',data});
+    $('#id').value=saved.id;toast('상품을 저장했습니다.');
+  });};
+}
 async function start() {
   try {
     user=await api('/me',{redirect:false}).catch(error=>{if(error.message.includes('로그인'))return null;throw error;});
     if(user){$('#account-link').textContent='마이 온도';$('#account-link').href='/account';$('#logout').hidden=false;await refreshCart();}
+    if(user?.role==='admin') $('#admin-link').hidden=false;
     $('#logout').onclick=event=>busy(event.currentTarget,async()=>{
       await api('/auth/logout',{method:'POST'});sessionStorage.setItem('ondo-flash','로그아웃했습니다.');location.replace('/products');
     });
-    if(['cart','checkout','account','orders'].includes(page)&&!requireLogin())return;
-    const renderers={products:catalog,product:detail,login:()=>authForm(false),register:()=>authForm(true),cart:cartPage,checkout:checkoutPage,account:accountPage,orders:ordersPage};
+    if(['cart','checkout','account','orders','admin'].includes(page)&&!requireLogin())return;
+    const renderers={products:catalog,product:detail,login:()=>authForm(false),register:()=>authForm(true),cart:cartPage,checkout:checkoutPage,account:accountPage,orders:ordersPage,admin:adminPage};
     await renderers[page]();
     const flash=sessionStorage.getItem('ondo-flash');if(flash){sessionStorage.removeItem('ondo-flash');toast(flash);}
   } catch(error) {

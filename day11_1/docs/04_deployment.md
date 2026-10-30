@@ -1,5 +1,7 @@
 # Render 배포 가이드
 
+**Auth 전환 이후에는 먼저 [Supabase Auth 로컬 테스트](07_supabase_auth_local_test.md)를 완료하세요.** 아래의 과거 검증 기록은 이전 인증 방식 기준입니다. 새 환경에는 `001`~`004`를 순서대로 적용하고, 기존 환경에는 `004`와 회원 연결이 필요합니다. Supabase Auth의 Site URL·허용 Redirect URL도 배포 주소로 설정합니다.
+
 현재 프로젝트는 **GitHub에 소스 업로드 → Supabase 준비 → Render Web Service 생성** 순서로 배포합니다. FastAPI가 화면과 API를 함께 제공하므로 프론트엔드를 따로 배포하지 않습니다.
 
 로컬 서버에서 실제 Supabase 연결과 장바구니·모의 결제를 검증했습니다. 실제 Render 배포는 아직 진행하지 않았습니다. 기존 Supabase 프로젝트를 그대로 사용하면 DB를 새로 만들 필요가 없습니다.

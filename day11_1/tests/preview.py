@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 import os
 os.environ.setdefault('APP_ORIGIN','http://127.0.0.1:8000')
 from app.main import app
-from tests.conftest import FakeDB
+from tests.conftest import FakeDB, FakeAuth
 
 
 class PreviewDB(FakeDB):
@@ -27,6 +27,7 @@ class PreviewDB(FakeDB):
 @asynccontextmanager
 async def lifespan(app):
     app.state.db=PreviewDB()
+    app.state.auth=FakeAuth(app.state.db)
     yield
 
 

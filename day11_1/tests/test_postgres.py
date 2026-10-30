@@ -102,7 +102,7 @@ def test_account_erasure_preserves_payment(conn):
     pending=direct(conn,uid,pid)
     mutate(conn,uid,'delete_account')
     user=conn.execute('select is_active,phone,address,password_hash,email from users where id=%s',(uid,)).fetchone()
-    assert user[0] is False and user[1:4]==('','','!disabled')
+    assert user[0] is False and user[1:4]==('','',None)
     assert user[4].endswith('@deleted.invalid')
     assert conn.execute('select count(*) from payments where user_id=%s',(uid,)).fetchone()[0]==1
     assert conn.execute('select status,phone,address from orders where id=%s',(pending['id'],)).fetchone()==('CANCELED','','')

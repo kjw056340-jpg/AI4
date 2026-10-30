@@ -17,14 +17,15 @@ from starlette.concurrency import run_in_threadpool
 
 from app.config import get_settings
 from app.db import Database
+from app.auth import Auth
 from app.routes import router
-from app.security import CSRF_COOKIE, allowed_origins, current_user
+from app.security import CSRF_COOKIE, allowed_origins, current_user, refresh_session, set_auth
 
 BASE = Path(__file__).resolve().parent.parent
 templates = Jinja2Templates(directory=str(BASE / 'templates'))
-PROTECTED = {'cart', 'checkout', 'account', 'orders'}
+PROTECTED = {'cart', 'checkout', 'account', 'orders', 'admin'}
 PAGES = {'products', 'product', 'login', 'register', *PROTECTED}
-AUTH_PATHS = {'/api/auth/login', '/api/auth/register'}
+AUTH_PATHS = {'/api/auth/login', '/api/auth/register', '/api/auth/refresh'}
 
 
 class RateLimiter:
@@ -54,8 +55,10 @@ limiter = RateLimiter()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state.db = Database(get_settings())
+    app.state.auth = Auth(get_settings())
     yield
     app.state.db.close()
+    app.state.auth.close()
 
 
 app = FastAPI(title='온도 쇼핑몰 API', version='1.0.0', lifespan=lifespan,
@@ -132,12 +135,23 @@ def home():
 async def screen(page: str, request: Request):
     if page not in PAGES:
         raise HTTPException(404, '페이지를 찾을 수 없습니다.')
+    session = None
     if page in PROTECTED:
         try:
-            await run_in_threadpool(current_user, request, request.app.state.db)
+            user = await run_in_threadpool(current_user, request, request.app.state.db)
         except HTTPException as exc:
             if exc.status_code != 401:
                 raise
-            next_url = request.url.path + ('?' + request.url.query if request.url.query else '')
-            return RedirectResponse('/login?' + urlencode({'next': next_url}), 303)
-    return templates.TemplateResponse(request=request, name='index.html', context={'page': page})
+            try:
+                user, session = await run_in_threadpool(refresh_session, request, request.app.state.db, request.app.state.auth)
+            except HTTPException as refresh_error:
+                if refresh_error.status_code != 401:
+                    raise
+                next_url = request.url.path + ('?' + request.url.query if request.url.query else '')
+                return RedirectResponse('/login?' + urlencode({'next': next_url}), 303)
+        if page == 'admin' and user.get('role') != 'admin':
+            raise HTTPException(403, '관리자 권한이 필요합니다.')
+    response = templates.TemplateResponse(request=request, name='index.html', context={'page': page})
+    if session:
+        set_auth(response, user, session)
+    return response
