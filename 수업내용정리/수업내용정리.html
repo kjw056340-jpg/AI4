@@ -2,13 +2,16 @@
 body{font-family:'Malgun Gothic',sans-serif;max-width:1000px;margin:48px auto;padding:0 24px;color:#203247;line-height:1.85;background:#fff}h1{font-size:42px}h2{margin-top:68px;padding-top:18px;border-top:2px solid #dce8f1;font-size:29px}h3{margin-top:30px}img{max-width:100%;height:auto}table{width:100%;border-collapse:collapse;font-size:14px;display:block;overflow:auto}td,th{border:1px solid #dce2e8;padding:10px;text-align:left}th{background:#edf4fb}pre{background:#142b41;color:#eef4fa;padding:20px;overflow:auto;border-radius:6px;font-size:14px;line-height:1.65}code{font-family:Consolas,'Malgun Gothic',monospace}blockquote{border-left:4px solid #3982b9;margin:20px 0;padding:8px 20px;background:#f0f6fb}a{color:#146eaa}nav{line-height:2.1} @media(max-width:600px){body{margin:24px auto;padding:0 16px}h1{font-size:32px}h2{font-size:24px}}
 </style></head><body><h1 id="section">수업내용정리</h1>
 <blockquote>
-<p>Python 기초에서 FastAPI 검증까지 · Day1–Day8 학습 노트<br />
-분석 기준: 로컬 수업 소스와 교안 · 2026-10-23</p>
+<p>Python 기초에서 DB·인증·소유자 접근 제어까지 · Day1–Day13 학습 노트<br />
+Day1<sub>8 정리: 2026-10-23 · Day9</sub>13 확장 분석: 2026-10-30</p>
 </blockquote>
 <h2 id="section-1">🗺️ 전체 아키텍처 — 코드가 서비스가 되는 여행</h2>
 <p><img src="assets/07-overall-architecture.png" alt="전체 서비스 아키텍처와 요청·응답 흐름" /></p>
 <p><strong>읽는 순서:</strong> 클라이언트의 HTTP 요청 → Uvicorn 수신 → FastAPI의 경로·메서드 선택 → Pydantic 입력 검증 → 업무 함수 → 응답입니다. 업무 함수는 필요에 따라 외부 API를 기다리거나 SQLite를 사용합니다. 이 두 가지는 선택적인 연결이며 모든 요청에서 연달아 실행되는 단계가 아닙니다.</p>
 <p>그림은 역할을 나눈 개념도입니다. 입력 검증과 업무 함수 호출은 FastAPI의 요청 처리 안에서 이어집니다. SQLite는 별도 <code>Day1-Day8</code> 방명록 종합 사례, 외부 API와 비동기 I/O는 Day7에 해당합니다. FastAPI의 기본 입력 검증에 실패하면 422 응답을 보내며, 모든 종류의 오류가 422인 것은 아닙니다.</p>
+<h3 id="day913">Day9~13 확장 아키텍처</h3>
+<p><img src="assets/11-day9-day13-architecture.png" alt="Day9~13의 데이터베이스 API와 인증·소유권 흐름" /></p>
+<p><strong>앞선 그림은 Day1<sub>8, 이 그림은 Day9</sub>13을 연결합니다.</strong> Day12의 사용자 API는 psycopg로 PostgreSQL에 직접 SQL을 전달합니다. Day13의 메모 API는 Supabase Auth로 사용자를 확인한 뒤 로컬 SQLite에서 그 사용자의 메모만 조회합니다. 서로 다른 실습이며 PostgreSQL에서 SQLite로 데이터가 자동 이동하지 않습니다. 그림의 PostgreSQL ‘게시글 등’은 관계형 저장소의 일반적인 예시이고, 현재 Day12 main의 직접 구현 대상은 사용자 등록·조회입니다. JSON 응답은 DB가 브라우저에 직접 전송하는 것이 아니라 FastAPI를 거쳐 반환됩니다.</p>
 <h2 id="section-2">🧭 이 자료를 읽는 방법</h2>
 <p><strong>입력받기 → 조건으로 판단하기 → 데이터를 구조화하기 → 검증하기 → API로 제공하기 → 테스트로 확인하기</strong>의 흐름으로 복습합니다. 각 일자의 ‘직접 해보기’를 먼저 풀고 마지막의 답과 비교하세요.</p>
 <p>이 문서는 원본 코드를 바탕으로 새로 작성한 해설입니다. ‘교정 예제’는 원본을 수정한 파일이 아니라 이해를 돕기 위한 예제입니다. 원본에는 학생 실습, 의도한 결함, 수정본, 정답이 섞여 있습니다.</p>
@@ -70,9 +73,39 @@ body{font-family:'Malgun Gothic',sans-serif;max-width:1000px;margin:48px auto;pa
 <td>명세·입력·응답·상태 테스트</td>
 <td>계약에서 기대값을 도출하고 회귀 검사</td>
 </tr>
+<tr>
+<td>Day9</td>
+<td>Day9/kdt_crud_pr_ai_review</td>
+<td>CRUD·브랜치·PR·AI 리뷰</td>
+<td>변경 범위와 회귀 근거를 갖춘 협업</td>
+</tr>
+<tr>
+<td>Day10</td>
+<td>Day10/lesson_01 ~ lesson_08</td>
+<td>SQL·트랜잭션·관계·JOIN</td>
+<td>저장·조회·소유권 규칙을 DB와 연결</td>
+</tr>
+<tr>
+<td>Day11</td>
+<td>Day11 + 관련 종합 프로젝트</td>
+<td>psycopg·PostgreSQL·로컬 LLM</td>
+<td>DB 연결과 SQL CRUD, 스트리밍 대화 이해</td>
+</tr>
+<tr>
+<td>Day12</td>
+<td>Day12/main.py, lesson01.md</td>
+<td>환경변수·DB 기반 API</td>
+<td>HTTP 입력을 SQL 저장·JSON 응답으로 연결</td>
+</tr>
+<tr>
+<td>Day13</td>
+<td>Day13/main.py ~ main3.py</td>
+<td>Supabase Auth·Bearer·Depends</td>
+<td>로그인 사용자 확인과 내 메모 접근 제어</td>
+</tr>
 </tbody>
 </table>
-<p><img src="assets/01-roadmap.png" alt="전체 학습 흐름" /></p>
+<p><img src="assets/01-roadmap.png" alt="Day1~8의 기초 학습 흐름" /></p>
 <p><strong>범위 메모:</strong> Day4는 확인한 코드가 짧아 다른 날짜와 같은 분량으로 확대하지 않았습니다. <code>05.FastAPI-uvicorn</code>과 <code>fastapi_win_vscode</code>는 FastAPI 보충 자료로 활용하며 Day5라고 단정하지 않습니다. <code>Day1-Day8</code> 방명록은 별도 종합 결과물로 다룹니다. <code>Day4/login.txt</code>의 내용은 정리에 포함하지 않았습니다.</p>
 <h2 id="day1">01 · Day1 — 프로그램의 기본 흐름</h2>
 <h3 id="section-3">핵심 개념</h3>
@@ -584,11 +617,504 @@ app.state.remaining -= body.seats
 <p><strong>앞의 세 컷:</strong> 이벤트 루프에서 동기 <code>time.sleep</code>을 직접 실행하면 다른 작업도 막힙니다. 비동기 대기 중에는 다른 작업이 진행할 수 있고, 먼저 끝난 결과라도 원래 요청 번호와 함께 보관해야 합니다. 만화의 1초·5초는 설명용 대기 시간이며 실제 측정값이 아닙니다.</p>
 <p><strong>뒤의 세 컷:</strong> 정원 4석에서 A의 3석 예약 후 잔여 1석 → B의 2석 요청 거절 후에도 잔여 1석 → C의 마지막 1석 예약 후 잔여 0석입니다. 기대 상태는 <strong>201 → 409 → 201</strong>입니다. 실패 응답뿐 아니라 장부와 다음 정상 요청까지 확인하는 것이 핵심입니다.</p>
 <p><strong>한 줄 퀴즈:</strong> 409를 반환하면 앞에서 변경한 메모리도 자동으로 되돌아갈까요? → 아닙니다. 먼저 검사하고 성공할 때만 상태를 변경해야 합니다.</p>
-<h2 id="section-20">🧩 종합 연결 — 작은 방명록</h2>
+<h2 id="day9-crud">09 · Day9 — CRUD를 완성하고 변경을 함께 검토하기</h2>
+<p><strong>자료:</strong> <code>Day9/kdt_crud_pr_ai_review/lesson_01 ~ lesson_08</code>. 앞의 네 차시는 Task API, 뒤의 네 차시는 Git·PR·리뷰·병합과 이를 설명하는 작은 Python 함수입니다. 뒤의 함수 검사는 실제 GitHub PR 생성·리뷰 완료를 뜻하지 않습니다.</p>
+<h3 id="crud">CRUD는 요청 하나보다 데이터의 이어지는 변화가 중요하다</h3>
+<table task_id="">
+<thead>
+<tr>
+<th>작업</th>
+<th>수업의 HTTP 예</th>
+<th>확인할 계약</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Create 생성</td>
+<td>POST /tasks</td>
+<td>새 ID 발급과 201</td>
+</tr>
+<tr>
+<td>Read 조회</td>
+<td>GET /tasks, GET /tasks/</td>
+<td>저장 데이터 조회, 없는 대상 404</td>
+</tr>
+<tr>
+<td>Update 교체</td>
+<td>PUT /tasks/1</td>
+<td>이 수업에서는 제목·완료 상태를 함께 전달</td>
+</tr>
+<tr>
+<td>Update 부분 수정</td>
+<td>PATCH /tasks/1</td>
+<td>보내지 않은 필드는 보존</td>
+</tr>
+<tr>
+<td>Delete 삭제</td>
+<td>DELETE /tasks/</td>
+<td>ID가 일치하는 데이터 삭제, 성공 204</td>
+</tr>
+</tbody>
+</table>
+<p><strong>ID와 위치는 다릅니다.</strong> ID가 1·3인 목록의 길이는 2이므로 <code>len(tasks)+1</code>은 이미 존재하는 ID 3을 만듭니다. 또한 <code>tasks.pop(task_id)</code>는 ID를 찾는 것이 아니라 그 번호의 인덱스를 삭제합니다.</p>
+<p>학습용 ID 생성은 <code>max((task[&quot;id&quot;] for task in tasks), default=0) + 1</code>처럼 현재 ID에서 계산할 수 있습니다. 운영 환경의 동시 생성까지 안전하게 보장하는 방식은 아니며, DB 기본키 발급과는 구분합니다. 원본 lesson_04의 생성 함수는 빈 목록에서 <code>max()</code>를 호출하므로 전체 삭제 뒤 다시 등록하는 경우도 점검할 만합니다.</p>
+<h3 id="patch">PATCH에서 생략과 값 전달을 구분하기</h3>
+<pre><code class="language-python"># 설명용 교정: 요청에 실제 포함된 필드만 반영합니다.
+changes = payload.model_dump(exclude_unset=True)
+item.update(changes)
+</code></pre>
+<p>원본 lesson_03은 <code>model_dump()</code>로 모든 기본값을 내보내므로 제목만 수정해도 <code>done=True</code>가 기본값 False로 바뀔 수 있습니다. <code>exclude_unset=True</code>는 생략한 필드를 제외합니다. 사용자가 명시적으로 보낸 null까지 무조건 제외하는 옵션은 아니므로 null 허용 정책은 별도로 정해야 합니다.</p>
+<h3 id="section-20">8차시 한눈에 보기</h3>
+<table>
+<thead>
+<tr>
+<th>차시</th>
+<th>주제</th>
+<th>현재 소스에서 확인한 점</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>조회·등록 통합</td>
+<td>목록 길이로 다음 ID를 계산해 중복 가능</td>
+</tr>
+<tr>
+<td>2</td>
+<td>개별 조회·404</td>
+<td>현재 main은 이미 None 검사 후 404 처리. README의 미수정 예와 구분</td>
+</tr>
+<tr>
+<td>3</td>
+<td>PUT·PATCH</td>
+<td>PATCH가 전달하지 않은 기본값까지 덮어씀</td>
+</tr>
+<tr>
+<td>4</td>
+<td>DELETE·전체 흐름</td>
+<td>ID를 인덱스로 사용해 삭제함</td>
+</tr>
+<tr>
+<td>5</td>
+<td>기능 브랜치·커밋</td>
+<td><code>bool(&quot;false&quot;)</code>는 True. 문자열을 명시적으로 해석해야 함</td>
+</tr>
+<tr>
+<td>6</td>
+<td>PR의 변경 범위</td>
+<td>요약 함수가 삭제된 파일을 제외함</td>
+</tr>
+<tr>
+<td>7</td>
+<td>AI 코드 리뷰</td>
+<td><code>&quot;admin&quot; in role</code>은 <code>&quot;not-admin&quot;</code>도 허용. 정확한 일치 검사 필요</td>
+</tr>
+<tr>
+<td>8</td>
+<td>충돌 해결·통합</td>
+<td>feature 목록만 반환해 main 쪽 항목을 잃음</td>
+</tr>
+</tbody>
+</table>
+<p><strong>협업 흐름:</strong> 변경 전 확인 → 기능 브랜치 → 작은 수정·검사 → 커밋 → PR에 문제·수정·검증 기록 → 지적을 재현해 판단 → 충돌 해결 → 재검사 → 병합입니다. 이 문서는 수업 흐름을 정리한 것이며 실제 원격 저장소에 PR을 만들거나 병합하지 않았습니다.</p>
+<p>AI 리뷰는 주장보다 <strong>입력 → 실제 결과 → 기대 결과 → 원인</strong>으로 평가합니다. ‘not-admin이 관리자로 판정된다’는 반례는 재현 가능한 지적입니다. 병합은 한쪽 파일을 선택하는 것만으로 끝나지 않으며, 양쪽 변경 의도와 같은 ID 충돌 정책을 확인해야 합니다.</p>
+<p><strong>직접 해보기:</strong> ID가 1·3인 목록에서 새 항목을 만든 뒤 ID 3을 삭제했을 때, 어떤 ID가 남아야 하나요? 제목만 PATCH한 뒤 기존 done=True는 유지되어야 할까요?</p>
+<h2 id="day10-sql">10 · Day10 — SQL, 트랜잭션, 관계형 데이터</h2>
+<p><strong>자료:</strong> <code>Day10/lesson_01 ~ lesson_08</code>의 README·main·solution·check. 주로 Python 표준 sqlite3를 사용하는 독립 실습입니다. 각 파일이 사용하는 <code>autocommit</code> 매개변수는 Python 3.12 이상에서 제공되므로 오래된 환경에서는 같은 코드가 실행되지 않을 수 있습니다.</p>
+<h3 id="section-21">메모리에서 파일로: 조회됐다고 저장이 확정된 것은 아니다</h3>
+<p>메모리 목록은 프로세스가 끝나면 사라집니다. SQLite는 파일에 데이터를 보관하지만, 수업의 트랜잭션 설정에서는 INSERT 뒤 commit해야 변경을 확정합니다. 같은 연결에서 조회된 행이 재연결 뒤에도 남는지 확인해야 합니다.</p>
+<table>
+<thead>
+<tr>
+<th>SQL</th>
+<th>의미</th>
+<th>함께 확인할 점</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>INSERT</td>
+<td>행 추가</td>
+<td>매개변수 바인딩·commit</td>
+</tr>
+<tr>
+<td>SELECT</td>
+<td>행 조회</td>
+<td>WHERE·ORDER BY·LIMIT</td>
+</tr>
+<tr>
+<td>UPDATE</td>
+<td>행 수정</td>
+<td>WHERE와 변경된 행 수</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td>행 삭제</td>
+<td>ID 조건·없는 대상 정책</td>
+</tr>
+<tr>
+<td>JOIN</td>
+<td>관련 테이블 연결</td>
+<td>연결 기준과 누락 행</td>
+</tr>
+<tr>
+<td>GROUP BY</td>
+<td>묶어서 집계</td>
+<td>COUNT의 대상과 NULL</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-sql">-- 설명용 조회: 도시 필터 → 점수순 → 동점은 ID순 → 개수 제한
+SELECT id, nickname, points
+FROM users
+WHERE city = ?
+ORDER BY points DESC, id ASC
+LIMIT ?;
+</code></pre>
+<p>SQLite에서 <code>?</code>에 값을 바인딩하면 <code>O'Neil</code> 같은 따옴표 포함 값도 SQL 문법과 분리해 전달할 수 있습니다. PostgreSQL psycopg 예제의 자리표시자는 <code>%s</code>이므로 그대로 섞어 쓰지 않습니다. 값 바인딩은 테이블명 같은 SQL 식별자를 넣는 용도와도 다릅니다.</p>
+<h3 id="section-22">트랜잭션: 함께 성공하거나 함께 취소하기</h3>
+<p>질문 저장과 답변 저장을 한 묶음으로 취급한다면 두 INSERT 뒤에 commit하고, 중간 실패에는 rollback해야 합니다. 첫 작업 직후 commit하면 두 번째가 실패해도 이미 확정된 첫 변경은 나중의 rollback으로 돌아오지 않습니다.</p>
+<p><strong>Day8과 연결:</strong> 메모리 값을 바꾼 뒤 HTTPException을 일으키면 자동 복구되지 않았습니다. DB에서도 트랜잭션 범위와 확정 시점을 직접 맞춰야 실패 후 상태를 보존할 수 있습니다.</p>
+<h3 id="section-23">사용자 → 대화방 → 메시지 관계</h3>
+<p><strong>users 1 → N conversations 1 → N messages</strong></p>
+<p>한 사용자는 여러 방을 만들고, 한 방에는 여러 메시지가 쌓입니다. 기본키는 행을 식별하고 외래키는 부모 행과 연결합니다. conversations.user_id에 UNIQUE를 걸면 한 사용자당 방 하나로 제한되어 수업의 1:N 요구와 충돌합니다.</p>
+<table>
+<thead>
+<tr>
+<th>차시</th>
+<th>결함·질문</th>
+<th>교정·검증 방향</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 저장 확정</td>
+<td>INSERT 뒤 commit 누락</td>
+<td>연결을 닫고 다시 읽어 저장 확인</td>
+</tr>
+<tr>
+<td>2 조회 조건</td>
+<td><code>limit or 2</code>가 0을 2로 바꿈</td>
+<td>0을 의미 있는 입력으로 보존, 동점 정렬도 검사</td>
+</tr>
+<tr>
+<td>3 수정·삭제</td>
+<td>두 작업 사이 commit</td>
+<td>한 트랜잭션으로 묶고 실패 시 전체 보존 확인</td>
+</tr>
+<tr>
+<td>4 제약조건</td>
+<td>CHECK만으로 NULL 점수를 막지 못함</td>
+<td>필수값은 NOT NULL도 지정</td>
+</tr>
+<tr>
+<td>5 ERD</td>
+<td>user_id의 UNIQUE가 다중 방 생성 차단</td>
+<td>관계 요구에 맞게 제약 수정</td>
+</tr>
+<tr>
+<td>6 외래키</td>
+<td>트랜잭션 안에서 활성화해 적용되지 않음</td>
+<td>트랜잭션 시작 전 켜고 PRAGMA 결과 확인</td>
+</tr>
+<tr>
+<td>7 LEFT JOIN</td>
+<td>메시지 없는 방도 COUNT(*)가 1</td>
+<td>실제 메시지 키인 COUNT(m.id)로 집계</td>
+</tr>
+<tr>
+<td>8 이력 모듈</td>
+<td>저장은 소유자 확인, 조회는 방 ID만 확인</td>
+<td>조회에도 사용자 ID 조건 추가</td>
+</tr>
+</tbody>
+</table>
+<p>차시 6의 현재 main은 autocommit=False 연결에서 PRAGMA를 실행합니다. solution처럼 설정을 적용할 수 있는 시점에 활성화하고 실제 값을 확인하는 것이 중요합니다. 이 문서의 표는 소스 분석이며 새 실행 결과가 아닙니다.</p>
+<h3 id="section-24">읽기에도 소유권 검사가 필요하다</h3>
+<pre><code class="language-sql">-- 설명용 교정: 요청자가 소유한 방의 메시지만 조회
+SELECT m.id, m.role, m.content
+FROM messages AS m
+JOIN conversations AS c ON c.id = m.conversation_id
+WHERE c.id = ? AND c.user_id = ?
+ORDER BY m.id;
+</code></pre>
+<p>원본 lesson_08의 list_history는 user_id 인자를 받지만 SQL에서 사용하지 않습니다. 함수에 인자를 받았다는 사실만으로 접근 제어가 생기지 않습니다. 쓰기와 읽기에 같은 소유권 정책이 적용되는지 모두 검사해야 합니다.</p>
+<p><strong>별도 결과물:</strong> <code>Day10/demo</code>는 회원·게시판·댓글·마스킹 화면의 목업입니다. README에 따르면 계정과 게시글 상태는 브라우저 저장소 기반이며, 실제 DB 회원 인증이나 실제 비밀번호 찾기 메일 전송과는 구분해야 합니다. 해당 프로젝트의 버전 추천·배포 기록을 이번 수업 정리에서 새 검증 결과로 인용하지 않았습니다.</p>
+<p><strong>직접 해보기:</strong> 빈 방의 메시지 수가 왜 COUNT(*)로 1이 될까요? 두 작업 사이의 commit을 마지막으로 옮기면 어떤 실패를 되돌릴 수 있을까요?</p>
+<h3 id="section-25">🎬 쉬어가는 만화 4 — 데이터 탐정단</h3>
+<p><img src="assets/12-comic-db-auth.png" alt="6컷 만화: ID, 저장 확정, 트랜잭션, DB 연결, 인증과 소유권" /></p>
+<p>1<sub>3컷은 Day9</sub>10, 4컷은 Day11<sub>12, 5</sub>6컷은 Day13의 이야기입니다. ‘작은 파일·큰 창고’는 배치 형태를 쉽게 설명한 비유이며 DB의 기능이나 성능 우열을 단정하지 않습니다. 마지막 ‘내 것인가?’는 이번 메모 API의 인가 정책입니다. 일반적인 인가는 역할·공유 권한 등 더 다양한 정책을 포함할 수 있습니다.</p>
+<h2 id="day11-postgresql-ai">11 · Day11 — PostgreSQL 연결과 로컬 AI 대화</h2>
+<h3 id="sql">같은 SQL 개념을 다른 저장소로 옮기기</h3>
+<p><code>Day11/main.py</code>는 파일 위치 기준 config.json을 읽어 psycopg로 Supabase PostgreSQL에 연결하고 <code>current_database()</code>와 <code>current_user</code>를 조회합니다. <strong>DB에 연결됐는지 확인하는 실습</strong>이지 웹 로그인 API는 아닙니다. 실제 host·user·password·프로젝트 키 등 연결값은 이 정리에 복사하지 않았습니다.</p>
+<p><code>main2.py</code>는 ch2 스키마에 users를 준비한 뒤 다음을 수행합니다.</p>
+<p><strong>테이블 준비 → 여러 사용자 INSERT → 전체 SELECT → 이메일 조건 UPDATE → 이메일 조건 DELETE → 재조회</strong></p>
+<ul>
+<li><code>GENERATED ALWAYS AS IDENTITY</code>로 ID를 발급하고 PK로 식별합니다.</li>
+<li>name·email에는 NOT NULL, email에는 UNIQUE가 있습니다.</li>
+<li><code>executemany()</code>는 여러 입력에 같은 SQL을 적용합니다.</li>
+<li>psycopg의 <code>%s</code>와 별도 튜플로 값을 전달합니다.</li>
+<li>해당 코드의 <code>with psycopg.connect(...)</code>는 정상 종료 시 commit, 예외 시 rollback하고 연결도 닫는 수명을 제공합니다. sqlite3 연결의 with와 동일하다고 가정하지 마세요.</li>
+</ul>
+<p><strong>원본 점검:</strong> main2.py는 시작할 때 <code>DROP TABLE IF EXISTS ch2.users</code>를 실행하므로 재실행 시 기존 실습 데이터를 지우는 구조입니다. 분석만 수행했으며 실제 DB에 연결하거나 실행하지 않았습니다.</p>
+<h3 id="lm-studio">LM Studio 실습은 별도 갈래</h3>
+<table>
+<thead>
+<tr>
+<th>파일</th>
+<th>확인한 역할</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>lmstudio_my.py</td>
+<td>로컬 서버의 모델 목록을 조회하고 첫 모델 ID 확인</td>
+</tr>
+<tr>
+<td>lmstudio_my2.py</td>
+<td>모델 선택·입력 반복·스트리밍 출력·대화 기록·예외 처리</td>
+</tr>
+</tbody>
+</table>
+<p>클라이언트의 base_url은 코드에서 로컬 LM Studio 서버를 가리킵니다. OpenAI Python SDK 형식으로 호출하더라도 이 예제의 요청 목적지는 로컬 서버입니다. 코드의 포트는 1235이며 실제 실행한 서버 포트와 맞아야 합니다.</p>
+<p><strong>대화 흐름:</strong> 모델 목록 → 사용자 선택 → system 메시지 → user 입력 → 조각 응답 수신 → 텍스트 합치기 → 성공한 대화 기록 반영. <code>/clear</code>는 메모리 대화를 초기화하고 <code>/exit</code>는 종료합니다. 응답이 비어 있거나 통신이 실패하면 해당 요청을 정상 대화로 기록하지 않도록 분리합니다. 메모리 메시지 목록은 Day10의 DB 대화 저장 모듈과 자동 연결되어 있지 않습니다.</p>
+<h3 id="section-26">함께 발견한 종합 프로젝트를 구분하기</h3>
+<table>
+<thead>
+<tr>
+<th>폴더</th>
+<th>자료에서 확인한 성격</th>
+<th>읽을 때 주의</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Day11-supabase</td>
+<td>README·ANALYSIS는 단일 SQLite 방명록 설명</td>
+<td>폴더 이름만으로 Supabase DB 사용을 단정하지 않음</td>
+</tr>
+<tr>
+<td>day11_1</td>
+<td>회원·상품·주문·결제의 쇼핑몰 설계·구현 자료</td>
+<td>수업 기본 연결 실습과 별도 종합 프로젝트</td>
+</tr>
+</tbody>
+</table>
+<p>day11_1에는 ERD, 구매 시뮬레이션, 테이블 정의, API·배포·인증 문서가 있습니다. README는 Supabase Auth 전환과 실제 app 실행·화면 미리보기 서버를 구분하고 있습니다. 프로젝트 안에 과거 검증 문서가 존재하지만 이번 정리에서 결제·로그인·배포를 새로 수행하거나 성공을 확인한 것은 아닙니다.</p>
+<p><strong>직접 해보기:</strong> DB 비밀번호와 사용자의 로그인 비밀번호는 같은 역할일까요? 스트리밍 응답 중 실패한 답변을 정상 대화 기록처럼 저장하면 어떤 문제가 생길까요?</p>
+<h2 id="day12-http-postgresql">12 · Day12 — HTTP 요청을 PostgreSQL 저장으로 연결하기</h2>
+<p><strong>자료:</strong> <code>Day12/main.py</code>, <code>lesson01.md</code>, <code>lesson01.py</code>, <code>간단쇼핑몰.txt</code>.</p>
+<h3 id="section-27">환경변수와 실행 설정</h3>
+<p><code>lesson01.py</code>는 dotenv로 설정을 읽고 os.getenv로 값을 조회하는 예입니다. 원본은 password도 출력하므로 정리용 예제로 그대로 실행하거나 출력물을 공유하지 않습니다. main.py는 코드 파일 옆 .env를 읽고 필요한 연결 설정을 확인합니다. 문서에는 값 대신 설정 이름과 역할만 기록했습니다.</p>
+<h3 id="api-2">사용자 등록·조회 API의 전체 흐름</h3>
+<p><strong>Swagger/브라우저 → APIRouter → UserCreate 검증 → psycopg 연결 → PostgreSQL SQL → dict 행 → JSON</strong></p>
+<table>
+<thead>
+<tr>
+<th>요소</th>
+<th>현재 main.py의 동작</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>UserCreate</td>
+<td>이름 1<sub>50자, 이메일 문자열 1</sub>100자, 앞뒤 공백 제거, 추가 필드 거절</td>
+</tr>
+<tr>
+<td>initialize_database</td>
+<td>kdt_api01 스키마와 users 테이블을 없으면 생성</td>
+</tr>
+<tr>
+<td>POST /users</td>
+<td>INSERT 후 RETURNING으로 생성 행 반환, 성공 201</td>
+</tr>
+<tr>
+<td>GET /users</td>
+<td>ID 오름차순으로 전체 사용자 반환</td>
+</tr>
+<tr>
+<td>dict_row</td>
+<td>결과를 컬럼 이름을 가진 dict 형태로 제공</td>
+</tr>
+<tr>
+<td>include_router</td>
+<td>관련 경로 묶음을 실제 FastAPI 앱에 등록</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-python"># main.py의 핵심 처리 방식: 사용자 값은 SQL과 분리합니다.
+row = conn.execute(
+    &quot;INSERT INTO kdt_api01.users (name, email) &quot;
+    &quot;VALUES (%s, %s) RETURNING id, name, email&quot;,
+    (user.name, user.email),
+).fetchone()
+</code></pre>
+<p>이메일은 현재 <code>str</code>이므로 길이를 검사하지만 이메일 형식 자체는 검사하지 않습니다. 테이블에도 email UNIQUE가 없습니다. Day11의 users 테이블과 다른 스키마·규칙입니다. Day13의 EmailStr과 비교하면 모델을 왜 다르게 선언하는지 이해할 수 있습니다.</p>
+<p><strong>실행 방식의 차이:</strong> 현재 코드는 <code>if __name__ == &quot;__main__&quot;</code> 안에서 DB 초기화와 <code>app.state.db_config</code> 설정을 수행합니다. 이 파일을 직접 실행하는 <code>python main.py</code>와, 모듈만 가져오는 <code>uvicorn main:app</code>은 동일하지 않습니다. 후자는 해당 블록을 실행하지 않으므로 현재 구조 그대로라면 DB 설정이 준비되지 않을 수 있습니다. 교안의 실행 예를 현재 소스에 대조해야 하는 지점입니다.</p>
+<p><code>lesson01.md</code>에는 getpass 입력 기반 안내도 있으나, 현재 main.py는 .env 기반입니다. 문서에 적힌 방식을 현재 구현으로 단정하지 않았습니다. 또한 Supabase PostgreSQL에 psycopg로 직접 접속하는 이 경로는 Supabase의 REST Data API 호출과 다릅니다.</p>
+<h3 id="section-28">쇼핑몰 기획은 구현 목록과 구분하기</h3>
+<p><code>간단쇼핑몰.txt</code>에는 회원·상품·주문(장바구니)·결제 테이블, 상품 선택·장바구니·구매내역·계정 수정 등의 요구가 있습니다. 비로그인 상태에서 인증이 필요한 동작을 선택하면 로그인 후 이전 화면으로 돌아오는 흐름도 포함합니다. 이 내용은 <strong>기획 요구사항</strong>이며 Day12/main.py에 쇼핑몰 전체가 구현되어 있다는 뜻은 아닙니다. 관련 종합 구현 자료는 별도 day11_1에서 읽습니다.</p>
+<p><strong>직접 해보기:</strong> POST /users의 결과에 생성된 ID가 있는 이유는 무엇인가요? 이메일 문자열 길이만 검사하는 것과 EmailStr 사용은 어떻게 다를까요?</p>
+<h2 id="day13">13 · Day13 — 로그인, 토큰 검증, 내 메모 접근 제어</h2>
+<p><strong>자료:</strong> <code>Day13/main.py</code>, <code>main2.py</code>, <code>main3.py</code>. 파일 안의 ‘차시’ 표시는 Day13 내부 실습 구분이며 날짜 Day 번호가 아닙니다.</p>
+<table>
+<thead>
+<tr>
+<th>파일</th>
+<th>구현 범위</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>main.py</td>
+<td>POST /auth/login, POST /auth/signup</td>
+</tr>
+<tr>
+<td>main2.py</td>
+<td>로그인 + Bearer 토큰으로 GET /me</td>
+</tr>
+<tr>
+<td>main3.py</td>
+<td>로그인·현재 사용자 의존성 + SQLite 메모 생성·목록·개별 조회</td>
+</tr>
+</tbody>
+</table>
+<h3 id="section-29">1. 가입과 로그인은 다르다</h3>
+<p>가입은 <code>auth.sign_up</code>, 로그인은 <code>auth.sign_in_with_password</code>를 호출합니다. 로그인 모델은 EmailStr로 이메일 형식을 검사하고 비밀번호는 SecretStr로 받습니다. 로그인은 기존 비밀번호를 확인하는 일이므로 비밀번호 앞뒤 공백을 제거하거나 가입용 강도 규칙을 다시 적용하지 않습니다.</p>
+<p>main.py의 가입 모델에는 길이 8~128의 규칙이 있습니다. 가입 응답은 안내 문구이며 이메일 확인 설정에 따라 다음 절차가 달라질 수 있습니다. 가입 안내를 받았다는 것과 즉시 로그인 가능한 세션을 받았다는 것은 구분해야 합니다.</p>
+<h3 id="section-30">2. 토큰의 역할을 구분하기</h3>
+<table>
+<thead>
+<tr>
+<th>값</th>
+<th>용도</th>
+<th>혼동하지 말 것</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>프로젝트 publishable 키</td>
+<td>어떤 Supabase 프로젝트에 요청할지 연결</td>
+<td>사용자 본인을 입증하는 access token과 다름</td>
+</tr>
+<tr>
+<td>access_token</td>
+<td>보호 API에 제시하는 사용자 JWT</td>
+<td>내용을 읽는 것과 진위 검증은 다름</td>
+</tr>
+<tr>
+<td>refresh_token</td>
+<td>새 세션 토큰을 받는 데 사용</td>
+<td>JWT 형태라고 가정하지 않음</td>
+</tr>
+<tr>
+<td>expires_in / expires_at</td>
+<td>발급 기준 기간 / 절대 만료 시각</td>
+<td>서로 다른 시간 표현</td>
+</tr>
+<tr>
+<td>SecretStr</td>
+<td>모델 표시에서 비밀 문자열을 가림</td>
+<td>암호화·해싱·자동 로그 보안이 아님</td>
+</tr>
+</tbody>
+</table>
+<p>원본은 token 응답에 <code>Cache-Control: no-store</code>를 지정하고 422 오류에서 원본 input을 제외합니다. SDK 전체 응답 대신 API에 필요한 필드만 반환합니다. refresh_token을 응답한다고 해서 이 세 파일에 토큰 갱신 경로까지 구현되어 있는 것은 아닙니다.</p>
+<h3 id="httpbearer-get_user">3. HTTPBearer는 추출, get_user는 검증</h3>
+<pre><code class="language-text">Authorization: Bearer &lt;access_token&gt;
+    ↓ HTTPBearer: 헤더에서 토큰 추출
+    ↓ get_current_user: 공통 의존성
+    ↓ Supabase auth.get_user(token): 사용자 확인
+    ↓ CurrentUser(id, email)
+    ↓ 보호된 경로 실행
+</code></pre>
+<p>HTTPBearer는 헤더를 읽고 Swagger의 인증 입력을 연결하지만 JWT 서명·만료를 혼자 검증하지 않습니다. 현재 소스는 Auth 서버의 get_user로 사용자를 확인합니다. <code>Depends(get_current_user)</code>처럼 함수를 전달하면 FastAPI가 요청 처리 중 의존성을 실행합니다. <code>get_current_user()</code>를 등록 시점에 미리 호출하는 것과 다릅니다.</p>
+<p>로그인 후 여러 요청에서 재사용하는 공통 사용자 확인 절차를 의존성으로 분리하면 메모 생성·조회마다 같은 인증 규칙을 적용하기 쉽습니다. 사용자별 전역 SDK 세션에 의존하지 않도록 요청용 클라이언트의 세션 저장·자동 갱신 설정도 명시되어 있습니다.</p>
+<h3 id="section-31">4. 인증과 인가: 로그인했다고 모든 메모를 읽지는 못한다</h3>
+<p>main3.py의 메모 저장소는 PostgreSQL이 아닌 <strong>NOTES_DB로 지정한 SQLite 파일</strong>입니다. 각 메모에는 id, owner_id, content가 있습니다.</p>
+<table note_id="">
+<thead>
+<tr>
+<th>경로</th>
+<th>핵심 규칙</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>POST /notes</td>
+<td>content를 검증하고 owner_id는 확인된 user.id로 서버가 결정</td>
+</tr>
+<tr>
+<td>GET /notes</td>
+<td><code>WHERE owner_id = ?</code>로 내 메모만 조회</td>
+</tr>
+<tr>
+<td>GET /notes/</td>
+<td><code>WHERE id = ? AND owner_id = ?</code>로 ID와 소유자 모두 확인</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-python"># main3.py의 접근 제어 핵심
+row = db.execute(
+    &quot;SELECT id, owner_id, content FROM notes &quot;
+    &quot;WHERE id = ? AND owner_id = ?&quot;,
+    (note_id, user.id),
+).fetchone()
+if row is None:
+    raise HTTPException(404, &quot;메모를 찾을 수 없습니다.&quot;)
+</code></pre>
+<p>요청 본문에 owner_id를 받아 신뢰하지 않습니다. 없는 ID와 타인 소유 ID는 같은 404로 응답해 둘을 구분하지 않는 정책입니다. UUID 메모 ID의 정렬은 생성 시간순을 뜻하지 않으므로 현재 <code>ORDER BY id</code>를 최신순 조회로 설명하지 않았습니다.</p>
+<p>DB 의존성은 yield로 연결을 전달하고 finally에서 닫습니다. 쓰기 뒤 commit이 있으며, <code>check_same_thread=False</code>는 스레드 검사 제한을 푸는 설정입니다. 여러 쓰기를 자동으로 안전하게 만드는 장치는 아닙니다.</p>
+<h3 id="section-32">5. 무엇을 테스트해야 하나요?</h3>
+<table>
+<thead>
+<tr>
+<th>시나리오</th>
+<th>현재 코드의 정책상 확인할 결과</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>형식이 잘못된 이메일·빈 비밀번호·추가 필드</td>
+<td>422, 오류 원문에 비밀번호가 되돌아오지 않음</td>
+</tr>
+<tr>
+<td>잘못된 로그인 정보</td>
+<td>해당 Auth 오류를 401로 분류</td>
+</tr>
+<tr>
+<td>이메일 미확인</td>
+<td>해당 Auth 오류를 403으로 분류</td>
+</tr>
+<tr>
+<td>요청 과다·Auth 통신 실패</td>
+<td>각각 429·503 처리</td>
+</tr>
+<tr>
+<td>Bearer 누락·유효하지 않은 사용자 토큰</td>
+<td>보호 경로 거절, 401 분류 확인</td>
+</tr>
+<tr>
+<td>A가 메모 생성</td>
+<td>owner_id가 본문 값이 아니라 검증된 A의 ID</td>
+</tr>
+<tr>
+<td>B가 A의 메모 목록·개별 조회 시도</td>
+<td>목록에서 제외, 개별 조회 404</td>
+</tr>
+<tr>
+<td>공백뿐인 메모·2000자 초과</td>
+<td>입력 검증 실패</td>
+</tr>
+</tbody>
+</table>
+<p>이 표는 소스에서 도출한 <strong>검증 계획</strong>입니다. 실제 계정 가입, 로그인, 메모 생성이나 외부 DB 변경은 이번 문서 정리에서 수행하지 않았습니다. main.py에는 같은 RequestValidationError 처리기가 두 번 등록되어 후자의 등록이 사용되는 중복도 있으며, 현재 두 함수의 취지는 동일합니다.</p>
+<p><strong>직접 해보기:</strong> A의 유효한 토큰으로 B의 note_id를 요청하면 왜 200이 아니어야 할까요? HTTPBearer와 auth.get_user가 각각 맡는 일을 구분해 보세요.</p>
+<h2 id="section-33">🧩 종합 연결 — 작은 방명록</h2>
 <p><code>Day1-Day8</code>은 원본 날짜별 수업 폴더와 구분되는 결과물입니다. README·ANALYSIS에서 Python 조건·반복, Pydantic 입력 검증, FastAPI 라우트, SQLite 저장과 HTML 응답을 연결한 사례를 확인할 수 있습니다.</p>
 <p><strong>폼 입력 → 길이·형식 검사 → Pydantic 검증 → SQLite 저장 → 303 이동 → 목록 HTML</strong></p>
 <p>글 전체 최대 1000개, 한 페이지 20개, 작성자 1<sub>20자·내용 1</sub>1000자 등의 정책은 이 방명록의 규칙입니다. 모든 수업에 공통인 규칙은 아닙니다. SQL 매개변수와 HTML escape는 각각 저장 단계와 화면 출력 단계의 문제를 다룹니다.</p>
-<h2 id="section-21">✅ 복습 답안과 체크리스트</h2>
+<h2 id="section-34">✅ 복습 답안과 체크리스트</h2>
 <table>
 <thead>
 <tr>
@@ -629,6 +1155,26 @@ app.state.remaining -= body.seats
 <td>Day8: 예약 후 잔여</td>
 <td>1 → 1 → 0. 실패가 상태를 바꾸면 안 됨</td>
 </tr>
+<tr>
+<td>Day9: ID 1·3에 새 항목 등록 후 3 삭제</td>
+<td>학습용 최대 ID + 1 규칙이라면 1·4. 제목 PATCH 뒤 done=True 보존</td>
+</tr>
+<tr>
+<td>Day10: 빈 방의 집계</td>
+<td>LEFT JOIN의 빈 쪽도 결과 행은 있어 COUNT(*)는 1, COUNT(m.id)는 0</td>
+</tr>
+<tr>
+<td>Day11: DB와 사용자 비밀번호</td>
+<td>DB 연결 계정과 애플리케이션 사용자의 인증은 다른 역할</td>
+</tr>
+<tr>
+<td>Day12: 생성 ID 반환</td>
+<td>INSERT RETURNING으로 DB가 발급한 ID를 포함한 행을 가져옴</td>
+</tr>
+<tr>
+<td>Day13: A가 B의 메모 요청</td>
+<td>인증 성공만으로 접근 불가. 현재 정책은 소유자 조건 불일치 시 404</td>
+</tr>
 </tbody>
 </table>
 <ul class="contains-task-list">
@@ -641,8 +1187,15 @@ app.state.remaining -= body.seats
 <li class="task-list-item"><input disabled="disabled" type="checkbox" /> blocking·async·thread의 대기 방식을 설명할 수 있다.</li>
 <li class="task-list-item"><input disabled="disabled" type="checkbox" /> 정상·경계·오류·상태 변화에서 기대값을 먼저 정할 수 있다.</li>
 <li class="task-list-item"><input disabled="disabled" type="checkbox" /> 현재 소스와 과거 검증 기록을 구분할 수 있다.</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> ID와 리스트 인덱스, PUT과 PATCH를 구분할 수 있다.</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> PR의 변경 범위에 삭제 파일과 회귀 근거도 포함할 수 있다.</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> commit·rollback 시점과 트랜잭션 범위를 설명할 수 있다.</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> 1:N 관계와 PK·FK·NOT NULL·UNIQUE의 역할을 설명할 수 있다.</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> LEFT JOIN 결과에서 COUNT(*)와 COUNT(자식 ID)를 구분할 수 있다.</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> HTTP 요청이 SQL·DB·JSON 응답으로 이어지는 경로를 설명할 수 있다.</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> 토큰 추출·사용자 검증·소유자 접근 제어를 구분할 수 있다.</li>
 </ul>
-<h2 id="section-22">📚 원본 위치와 공식 참고 자료</h2>
+<h2 id="section-35">📚 원본 위치와 공식 참고 자료</h2>
 <p>로컬 원본 기준 경로는 <code>C:\Users\Playdata\dev</code>입니다. Notion에서 로컬 경로가 웹 링크처럼 열리지는 않으므로 아래 경로는 파일을 찾기 위한 표기입니다.</p>
 <ul>
 <li>Day1: <code>Day1/day1-1.py ~ day1-5.py</code></li>
@@ -655,6 +1208,13 @@ app.state.remaining -= body.seats
 <li>Day7: <code>Day7/01</code>, <code>Day7/02</code>, <code>Day7/03</code></li>
 <li>Day8: 각 lesson의 <code>README.md</code>, <code>main.py</code>, <code>solution.py</code>, <code>TEST_CASES.md</code>, <code>test_api.py</code>, <code>VERIFICATION.md</code></li>
 <li>종합 사례: <code>Day1-Day8/README.md</code>, <code>Day1-Day8/ANALYSIS.md</code></li>
+<li>Day9: <code>Day9/kdt_crud_pr_ai_review/lesson_01 ~ lesson_08</code>의 README·main·check·solution</li>
+<li>Day10: <code>Day10/lesson_01 ~ lesson_08</code>의 README·main·solution, 별도 목업 <code>Day10/demo/README.md</code></li>
+<li>Day11 DB: <code>Day11/main.py</code>, <code>Day11/main2.py</code></li>
+<li>Day11 로컬 AI: <code>Day11/lmstudio_my.py</code>, <code>Day11/lmstudio_my2.py</code></li>
+<li>관련 결과물 구분: <code>Day11-supabase/README.md</code>, <code>ANALYSIS.md</code>, <code>day11_1/README.md</code></li>
+<li>Day12: <code>Day12/main.py</code>, <code>lesson01.md</code>, <code>lesson01.py</code>, <code>간단쇼핑몰.txt</code></li>
+<li>Day13: <code>Day13/main.py</code>, <code>main2.py</code>, <code>main3.py</code></li>
 </ul>
 <p>아래 공식 자료는 개념을 재확인하거나 심화할 때 사용합니다. 로컬 requirements의 수업 버전과 웹 최신 문서의 버전은 다를 수 있습니다.</p>
 <ul>
@@ -666,6 +1226,11 @@ app.state.remaining -= body.seats
 <li><a href="https://fastapi.tiangolo.com/tutorial/response-model/">FastAPI — Response Model</a>: 응답 검증·문서화·필드 제한.</li>
 <li><a href="https://fastapi.tiangolo.com/tutorial/handling-errors/">FastAPI — Handling Errors</a>: HTTPException과 오류 응답.</li>
 <li><a href="https://fastapi.tiangolo.com/tutorial/testing/">FastAPI — Testing</a>: TestClient와 pytest의 기본 사용.</li>
+<li><a href="https://docs.python.org/3/library/sqlite3.html">Python — sqlite3</a>: 연결·SQL 매개변수·트랜잭션 제어. Day10의 autocommit 설정과 함께 확인.</li>
+<li><a href="https://www.psycopg.org/psycopg3/docs/basic/transactions.html">psycopg — Transactions management</a>: PostgreSQL 연결의 commit·rollback과 컨텍스트 관리.</li>
+<li><a href="https://supabase.com/docs/reference/python/auth-getuser">Supabase — Retrieve a user</a>: Auth 서버를 통해 토큰에 해당하는 사용자 확인.</li>
+<li><a href="https://supabase.com/docs/guides/auth/jwts">Supabase — JWT</a>: 토큰의 역할과 검증 개념.</li>
 </ul>
-<p><strong>시각 자료 출처:</strong> 직접 제작한 도식 6개, 내장 이미지 생성 도구로 제작한 전체 아키텍처 1장과 카툰 시트 3장, 기존 로컬 교안 이미지 2개를 사용했습니다. 생성 프롬프트는 함께 저장한 <code>이미지_생성기록.json</code>에 있습니다. 동시성 시간은 설명용 가정이며 실제 측정 데이터가 아닙니다. 기존 이미지는 수업 자료에서 가져온 것으로 원저작자·외부 재배포 권한은 별도로 확인하지 않았습니다.</p>
+<p><strong>시각 자료 출처:</strong> 직접 제작한 도식 6개, 내장 이미지 생성 도구로 제작한 아키텍처 2장과 카툰 시트 4장, 기존 로컬 교안 이미지 2개로 총 14개입니다. 카툰은 총 20컷이며 생성 프롬프트는 함께 저장한 <code>이미지_생성기록.json</code>에 있습니다. 동시성 시간은 설명용 가정이며 실제 측정 데이터가 아닙니다. 기존 이미지는 수업 자료에서 가져온 것으로 원저작자·외부 재배포 권한은 별도로 확인하지 않았습니다.</p>
+<p><strong>2026-10-30 확장 작업의 확인 범위:</strong> Day9~13의 교안·현재 소스와 관련 프로젝트 README를 읽어 설명을 추가했습니다. 원본 수업 코드는 수정하지 않았고, 데이터베이스·Auth·LM Studio에 실제 요청을 보내지 않았습니다. 과거 VERIFICATION 기록과 이번 소스 분석, 앞으로 실행할 검증 계획을 구분했습니다.</p>
 </body></html>
