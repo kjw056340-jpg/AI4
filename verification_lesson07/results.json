@@ -1,0 +1,106 @@
+{
+  "target": "Day14/main7.py and Day14/readme7.md (user confirmed)",
+  "runtime": {
+    "python": "3.12.14",
+    "redis_py": "8.1.0",
+    "sqlite": "3.53.1"
+  },
+  "results": [
+    {
+      "test": "TCP endpoint explicitly refuses connection (Windows 10061)",
+      "kind": "real TCP refusal",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "isolated CLI init",
+      "kind": "local SQLite",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "unavailable endpoint: history BYPASS exit 0",
+      "kind": "real TCP refusal",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "unavailable endpoint: session denied exit 1",
+      "kind": "real TCP refusal",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "unavailable endpoint: add commits two rows and warns on DEL",
+      "kind": "real TCP refusal",
+      "status": "PASS",
+      "detail": "Two rows verified through a fresh SQLite connection; subsequent history includes both."
+    },
+    {
+      "test": "GET succeeds, SET alone fails",
+      "kind": "fault injection",
+      "status": "PASS",
+      "detail": "GET returned nil normally; only SET raised. Source rows returned, exit 0."
+    },
+    {
+      "test": "valid cache HIT does not call SET",
+      "kind": "fault injection control",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "SQLite version lookup failure is not hidden by cache",
+      "kind": "local SQLite error + cache spy",
+      "status": "PASS",
+      "detail": "Version query fails before GET; no successful cache result is emitted."
+    },
+    {
+      "test": "SQLite read failure after successful GET miss propagates",
+      "kind": "fault injection",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "SQLite read failure on BYPASS propagates",
+      "kind": "fault injection",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "DEL failure leaves old cache but new version selects fresh rows",
+      "kind": "fault injection",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "second INSERT failure rolls back both messages",
+      "kind": "SQLite trigger fault injection",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "session denied: GET failure",
+      "kind": "fault injection",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "session denied: missing session",
+      "kind": "fault injection",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "original source and lesson document unchanged",
+      "kind": "SHA-256 comparison",
+      "status": "PASS",
+      "detail": ""
+    }
+  ],
+  "limitations": [
+    "No actual Redis server stop/restart was tested: no available Redis/Docker executable was found.",
+    "Real TCP tests use a reserved, non-listening loopback endpoint, not a mocked Redis client.",
+    "The network session identifier was synthetic and never issued; no pre-outage valid-session lifecycle is claimed.",
+    "No web authentication, actual accounts, external endpoints, project .env or original SQLite data were used."
+  ]
+}
